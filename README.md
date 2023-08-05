@@ -7,7 +7,13 @@ remains the basis for the current state thought.
 
 [![build](https://github.com/enckse/swiftvf/actions/workflows/build.yml/badge.svg)](https://github.com/enckse/vftool/actions/workflows/build.yml)
 
-## Changes
+## Build
+
+to get `swiftvf` working:
+- clone the repository
+- `make`
+
+## Canges
 
 While there is quite a bit of divergence, the major changes are really:
 
