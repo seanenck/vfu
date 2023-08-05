@@ -18,7 +18,6 @@ func createConsoleConfiguration() -> VZSerialPortConfiguration {
     tcsetattr(inputFileHandle.fileDescriptor, TCSANOW, &attributes)
     let stdioAttachment = VZFileHandleSerialPortAttachment(fileHandleForReading: inputFileHandle,
                                                            fileHandleForWriting: outputFileHandle)
-
     consoleConfiguration.attachment = stdioAttachment
     return consoleConfiguration
 }
@@ -90,7 +89,7 @@ func  getVMConfig(mem_size_mb: UInt64,
             }
             let share_url = URL(fileURLWithPath: share_path);
             do {
-            try VZVirtioFileSystemDeviceConfiguration.validateTag(key)
+                try VZVirtioFileSystemDeviceConfiguration.validateTag(key)
             } catch {
                 throw VMError.runtimeError("invalid tag: \(key)");
             }
