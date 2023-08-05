@@ -1,9 +1,9 @@
 swiftvf
 ===
 
-`swiftvf` is a swift re-implementation of `vftool` (in swift) with a set of changes that
-make it a bit different to run, the baseline functionality of [vftool](https://github.com/evansm7/vftool)
-remains the basis for the current state thought.
+`swiftvf` is a swift re-implementation of `vftool` (in swift!) with a set of changes that
+make it a bit different to run. The baseline functionality of [vftool](https://github.com/evansm7/vftool)
+remains the basis for the current state at this time.
 
 [![build](https://github.com/enckse/swiftvf/actions/workflows/build.yml/badge.svg)](https://github.com/enckse/vftool/actions/workflows/build.yml)
 
