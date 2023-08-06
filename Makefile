@@ -1,6 +1,7 @@
 BIN     := build/
 TARGET  := $(BIN)swiftvf
 FLAGS   := -O
+GEN     := swiftvf/generated.swift
 CODE    := swiftvf/main.swift
 DESTDIR := $(HOME)/.bin/ 
 
@@ -10,8 +11,11 @@ all:	prep $(TARGET) sign
 prep:
 	mkdir -p $(BIN)
 
-$(TARGET): $(CODE)
-	swiftc $(FLAGS) -o $(TARGET) $(CODE)
+$(GEN): $(CODE)
+	cat generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -d " " -f 1)/g' > $@
+
+$(TARGET): $(GEN) $(CODE)
+	swiftc $(FLAGS) -o $(TARGET) $(CODE) $(GEN)
 
 .PHONY: sign
 sign: $(TARGET)
@@ -19,6 +23,7 @@ sign: $(TARGET)
 	
 clean:
 	rm -rf $(BIN)
+	rm -f $(GEN)
 
 check: $(TARGET)
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img

@@ -4,6 +4,7 @@ import Virtualization
 let configOption = "--config"
 let helpOption = "--help"
 let verifyOption = "--verify"
+let versionOption = "--version"
 let configFileTemplate = "<configuration file>"
 let minMemory: UInt64 = 128
 let readonlyJSONKey = "readonly"
@@ -183,7 +184,7 @@ func readShare(key: String, shares: Dictionary<String, Dictionary<String, String
 }
 
 func usage(invalidArgument: String) {
-    print("swiftvf:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n  \(helpOption)\n  \(verifyOption) [after \(configOption) \(configFileTemplate)]\n")
+    print("swiftvf:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n  \(helpOption)\n  \(versionOption)\n  \(verifyOption) [after \(configOption) \(configFileTemplate)]\n")
     if (invalidArgument != "") {
         fatalError("invalid argument")
     }
@@ -219,6 +220,10 @@ func run() {
                 break
             case helpOption:
                 usage(invalidArgument: "")
+                return
+            case versionOption:
+                let vers = version()
+                print("\(vers)")
                 return
             default:
                 usage(invalidArgument: argument)
