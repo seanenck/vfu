@@ -184,7 +184,7 @@ func readShare(key: String, shares: Dictionary<String, Dictionary<String, String
 }
 
 func usage(invalidArgument: String) {
-    print("swiftvf:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n  \(helpOption)\n  \(versionOption)\n  \(verifyOption) [after \(configOption) \(configFileTemplate)]\n")
+    print("swiftvf:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n  \n")
     if (invalidArgument != "") {
         fatalError("invalid argument")
     }
