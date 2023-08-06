@@ -1,7 +1,8 @@
-BIN    := build/
-TARGET := $(BIN)swiftvf
-FLAGS  := -O
-CODE   := swiftvf/main.swift
+BIN     := build/
+TARGET  := $(BIN)swiftvf
+FLAGS   := -O
+CODE    := swiftvf/main.swift
+DESTDIR := $(HOME)/.bin/ 
 
 all:	prep $(TARGET) sign
 
@@ -22,3 +23,6 @@ clean:
 check: $(TARGET)
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(TARGET) --config example.json --verify
+
+install:
+	install -m755 $(TARGET) $(DESTDIR)
