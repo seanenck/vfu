@@ -25,6 +25,7 @@ While there is quite a bit of divergence, the major changes are really:
 - shared directory support (including readonly) via virtio is added
 - one (or more) static MACs can be attached
 - no tty options
+- use '~/' to refer to a location starting with the user's home
 
 ## Configuration
 
@@ -60,7 +61,7 @@ vim alpine.json
        "path": "/Users/me/Downloads"
     },
     "documents": {
-       "path": "/Users/me/Documents",
+       "path": "~/Documents",
        "readonly": "yes"
     }
   },

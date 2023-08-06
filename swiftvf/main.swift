@@ -15,6 +15,7 @@ let networkJSONKey = "network"
 let commandLineJSONKey = "cmdline"
 let shareJSONKey = "shares"
 let diskJSONKey = "disks"
+let resolveHomeIndicator = "~/"
 let topLevelJSONKeys: Set<String> = [kernelJSONKey,
                                      initrdJSONKey,
                                      cpuJSONKey,
@@ -58,6 +59,20 @@ func isReadOnly(data: Dictionary<String, String>) -> Bool {
     return (data[readonlyJSONKey] ?? "") == "yes"
 }
 
+func resolveUserHome(path: String) -> URL {
+    if (!path.hasPrefix(resolveHomeIndicator)) {
+        return URL(fileURLWithPath: path)
+    }
+    var homeDirURL = FileManager.default.homeDirectoryForCurrentUser
+    if (path == resolveHomeIndicator) {
+        return homeDirURL
+    } else {
+        let sub = path.dropFirst(resolveHomeIndicator.count)
+        homeDirURL.append(path: String(sub))
+        return homeDirURL
+    }
+}
+
 func  getVMConfig(memoryMB: UInt64,
                   numCPUs: Int,
                   commandLine: String,
@@ -66,11 +81,11 @@ func  getVMConfig(memoryMB: UInt64,
                   disks: Array<Dictionary<String, String>>,
                   shares: Dictionary<String, Dictionary<String, String>>,
                   networking: Array<Dictionary<String, String>>) throws -> VZVirtualMachineConfiguration {
-    let kernelURL = URL(fileURLWithPath: kernelPath)
+    let kernelURL = resolveUserHome(path: kernelPath)
     let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
     bootLoader.commandLine = commandLine
     if (initrdPath != "") {
-        bootLoader.initialRamdiskURL = URL(fileURLWithPath: initrdPath)
+        bootLoader.initialRamdiskURL = resolveUserHome(path: initrdPath)
     }
 
     print("configuring - kernel: \(kernelPath), initrd: \(initrdPath), cmdline: \(commandLine)")
@@ -120,7 +135,7 @@ func  getVMConfig(memoryMB: UInt64,
         if (diskPath == "") {
             throw VMError.runtimeError("invalid disk, empty path")
         }
-        guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: URL(fileURLWithPath: diskPath), readOnly: isReadOnly(data: disk)) else {
+        guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: resolveUserHome(path: diskPath), readOnly: isReadOnly(data: disk)) else {
             throw VMError.runtimeError("invalid disk: \(diskPath)")
         }
         allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
@@ -144,7 +159,7 @@ func  getVMConfig(memoryMB: UInt64,
             if (sharePath == "") {
                 throw VMError.runtimeError("empty share path: \(key)")
             }
-            let directoryShare = VZSharedDirectory(url:URL(fileURLWithPath: sharePath), readOnly: isReadOnly(data: local))
+            let directoryShare = VZSharedDirectory(url:resolveUserHome(path: sharePath), readOnly: isReadOnly(data: local))
             let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
             let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
             shareConfig.share = singleDirectory
