@@ -20,5 +20,5 @@ clean:
 	rm -rf $(BIN)
 
 check: $(TARGET)
-	touch $(BIN)apkovl.img $(BIN)alpine-standard-3.18.2-aarch64.iso $(BIN)data.img
+	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(TARGET) --config example.json --verify

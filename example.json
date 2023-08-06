@@ -5,7 +5,7 @@
   "memory": 8192, 
   "disks": [
     { 
-      "path": "build/alpine-standard-3.18.2-aarch64.iso",
+      "path": "build/alpine-aarch64.iso",
       "readonly": "yes"
     },
     { 
