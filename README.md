@@ -3,7 +3,9 @@ swiftvf
 
 `swiftvf` is a swift re-implementation of `vftool` (in swift!) with a set of changes that
 make it a bit different to run. The baseline functionality of [vftool](https://github.com/evansm7/vftool)
-remains the basis for the current state at this time.
+remains the basis for the current state at this time. The main goal is to take
+what `vftool` is and provide the ability to run/configure simple Linux-based
+VMs.
 
 [![build](https://github.com/enckse/swiftvf/actions/workflows/build.yml/badge.svg)](https://github.com/enckse/vftool/actions/workflows/build.yml)
 
@@ -13,7 +15,7 @@ to get `swiftvf` working:
 - clone the repository
 - `make`
 
-## Canges
+## Changes
 
 While there is quite a bit of divergence, the major changes are really:
 
@@ -30,7 +32,7 @@ The JSON configuration, to run a minimal alpine iso, is below with the following
 expectations
 1. Download the arm64 (aarch64) standard iso for alpine
 2. Extract the vmlinuz-lts and initramfs-lts from the iso (and gzip decompress them)
-3. Run the following (assuming swiftvf has already been built and is PATH and all the specified files are in the current directory)...
+3. Run the following (assuming `swiftvf` has already been built and is PATH and all the specified files are in the current directory)...
 4. Create the JSON configuration file
 
 ```
