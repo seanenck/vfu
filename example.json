@@ -1,0 +1,36 @@
+{
+  "kernel": "vmlinuz-lts",
+  "initrd": "initramfs-lts",
+  "cpus": 2,
+  "memory": 8192, 
+  "disks": [
+    { 
+      "path": "alpine-standard-3.18.2-aarch64.iso",
+      "readonly": "yes"
+    },
+    { 
+      "path": "apkovl.img"
+    },
+    { 
+      "path": "data.img"
+    }
+  ],
+  "shares": {
+    "downloads": {
+       "path": "/Users/me/Downloads"
+    },
+    "documents": {
+       "path": "~/Documents",
+       "readonly": "yes"
+    }
+  },
+  "network": [
+    {
+      "mac": "12:34:56:78:90:ab",
+      "mode": "nat"
+    },
+    {
+      "mode": "nat"
+    }
+  ]
+}

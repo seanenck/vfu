@@ -20,7 +20,8 @@ to get `swiftvf` working:
 While there is quite a bit of divergence, the major changes are really:
 
 - instead of CLI arguments for all parameters, a JSON configuration file is
-  passed via the `-c` flag
+  passed via the `--config` flag (pass `--verify-json` to check JSON without
+  running the VM)
 - bridged networking functionality is (currently) removed
 - shared directory support (including readonly) via virtio is added
 - one (or more) static MACs can be attached
@@ -34,45 +35,5 @@ expectations
 1. Download the arm64 (aarch64) standard iso for alpine
 2. Extract the vmlinuz-lts and initramfs-lts from the iso (and gzip decompress them)
 3. Run the following (assuming `swiftvf` has already been built and is PATH and all the specified files are in the current directory)...
-4. Create the JSON configuration file
-
-```
-vim alpine.json
----
-{
-  "kernel": "vmlinuz-lts",
-  "initrd": "initramfs-lts",
-  "cpus": 2,
-  "memory": 8192, 
-  "disks": [
-    { 
-      "path": "alpine-standard-3.18.2-aarch64.iso",
-      "readonly": "yes"
-    },
-    { 
-      "path": "apkovl.img"
-    },
-    { 
-      "path": "data.img"
-    }
-  ],
-  "shares": {
-    "downloads": {
-       "path": "/Users/me/Downloads"
-    },
-    "documents": {
-       "path": "~/Documents",
-       "readonly": "yes"
-    }
-  },
-  "network": [
-    {
-      "mac": "12:34:56:78:90:ab",
-      "mode": "nat"
-    },
-    {
-      "mode": "nat"
-    }
-  ]
-}
-```
+4. Create the JSON configuration file (see example.json as a starting place)
+5. Run `swiftvf --config <file>.json`
