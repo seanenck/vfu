@@ -2,6 +2,30 @@ import Foundation
 import Virtualization
 
 let minMemory: UInt64 = 128
+let readonlyJSONKey = "readonly"
+let networkModeJSONKey = "mode"
+let networkMACJSONKey = "mac"
+let diskPathJSONKey = "path"
+let sharePathJSONKey = "path"
+let kernelJSONKey = "kernel"
+let initrdJSONKey = "initrd"
+let cpuJSONKey = "cpus"
+let memJSONKey = "memory"
+let networkJSONKey = "network"
+let commandLineJSONKey = "cmdline"
+let shareJSONKey = "shares"
+let diskJSONKey = "disks"
+let topLevelJSONKeys: Set<String> = [kernelJSONKey,
+                                     initrdJSONKey,
+                                     cpuJSONKey,
+                                     memJSONKey,
+                                     shareJSONKey,
+                                     diskJSONKey,
+                                     commandLineJSONKey,
+                                     networkJSONKey]
+let diskJSONKeys: Set<String> = [readonlyJSONKey, diskPathJSONKey]
+let shareJSONKeys: Set<String> = [sharePathJSONKey, readonlyJSONKey]
+let networkJSONKeys: Set<String> = [networkModeJSONKey, networkMACJSONKey]
 
 enum VMError: Error {
     case runtimeError(String)
@@ -22,9 +46,16 @@ func createConsoleConfiguration() -> VZSerialPortConfiguration {
     return consoleConfiguration
 }
 
+func checkKeys(keys: Array<String>, allowed: Set<String>) throws {
+    for key in keys {
+        if (!allowed.contains(key)) {
+            throw VMError.runtimeError("unknown JSON configuration key: \(key)")
+        }
+    }
+}
 
 func isReadOnly(data: Dictionary<String, String>) -> Bool {
-    return (data["readonly"] ?? "") == "yes"
+    return (data[readonlyJSONKey] ?? "") == "yes"
 }
 
 func  getVMConfig(memoryMB: UInt64,
@@ -52,13 +83,14 @@ func  getVMConfig(memoryMB: UInt64,
     var networkConfigs = Array<VZVirtioNetworkDeviceConfiguration>()
     var networkAttachments = Set<String>()
     for network in networking {
-        let networkMode = (network["mode"] ?? "")
+        try checkKeys(keys: Array(network.keys), allowed: networkJSONKeys)
+        let networkMode = (network[networkModeJSONKey] ?? "")
         let networkConfig = VZVirtioNetworkDeviceConfiguration()
         var networkIdentifier = ""
         var networkIdentifierMessage = ""
         switch (networkMode) {
         case "nat":
-            let networkMAC = (network["mac"] ?? "")
+            let networkMAC = (network[networkMACJSONKey] ?? "")
             if (networkMAC != "") {
                 guard let addr = VZMACAddress(string: networkMAC) else {
                     throw VMError.runtimeError("invalid MAC address: \(networkMAC)")
@@ -83,7 +115,8 @@ func  getVMConfig(memoryMB: UInt64,
     config.entropyDevices = [VZVirtioEntropyDeviceConfiguration()]
     var allStorage = Array<VZVirtioBlockDeviceConfiguration>()
     for disk in disks {
-        let diskPath = (disk["path"] ?? "")
+        try checkKeys(keys: Array(disk.keys), allowed: diskJSONKeys)
+        let diskPath = (disk[diskPathJSONKey] ?? "")
         if (diskPath == "") {
             throw VMError.runtimeError("invalid disk, empty path")
         }
@@ -106,7 +139,8 @@ func  getVMConfig(memoryMB: UInt64,
             guard let local = shares[key] else {
                 throw VMError.runtimeError("unable to read share data")
             }
-            let sharePath = (local["path"] ?? "")
+            try checkKeys(keys: Array(local.keys), allowed: shareJSONKeys)
+            let sharePath = (local[sharePathJSONKey] ?? "")
             if (sharePath == "") {
                 throw VMError.runtimeError("empty share path: \(key)")
             }
@@ -168,25 +202,26 @@ func run() {
         fatalError("no JSON config given")
     }
     let object = (readJSON(path: jsonConfig) ?? Dictionary())
-    let kernel = ((object["kernel"] as? String) ?? "")
+    let kernel = ((object[kernelJSONKey] as? String) ?? "")
     if (kernel == "") {
         fatalError("kernel path is not set")
     }
-    let initrd = ((object["initrd"] as? String) ?? "")
-    let network = ((object["network"] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>())
-    let cmd = ((object["cmdline"] as? String) ?? "console=hvc0")
-    let cpus = ((object["cpus"] as? Int) ?? 1)
+    let initrd = ((object[initrdJSONKey] as? String) ?? "")
+    let network = ((object[networkJSONKey] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>())
+    let cmd = ((object[commandLineJSONKey] as? String) ?? "console=hvc0")
+    let cpus = ((object[cpuJSONKey] as? Int) ?? 1)
     if (cpus <= 0) {
         fatalError("cpu count must be > 0")
     }
-    let mem = ((object["memory"] as? UInt64) ?? minMemory)
+    let mem = ((object[memJSONKey] as? UInt64) ?? minMemory)
     if (mem < minMemory) {
         fatalError("memory must be >= \(minMemory)")
     }
-    let disks = ((object["disks"] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>())
-    let shares = ((object["shares"] as? Dictionary<String, Dictionary<String, String>>) ?? Dictionary<String, Dictionary<String, String>>())
+    let disks = ((object[diskJSONKey] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>())
+    let shares = ((object[shareJSONKey] as? Dictionary<String, Dictionary<String, String>>) ?? Dictionary<String, Dictionary<String, String>>())
 
     do {
+        try checkKeys(keys: Array(object.keys), allowed: topLevelJSONKeys)
         let config = try getVMConfig(memoryMB: mem, numCPUs: cpus, commandLine: cmd, kernelPath: kernel, initrdPath: initrd, disks: disks, shares: shares, networking: network)
         try config.validate()
         let queue = DispatchQueue(label: "secondary queue")

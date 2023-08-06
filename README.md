@@ -55,7 +55,6 @@ vim alpine.json
       "path": "data.img"
     }
   ],
-  "tty": "connect",
   "shares": {
     "downloads": {
        "path": "/Users/me/Downloads"
