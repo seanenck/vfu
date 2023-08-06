@@ -20,4 +20,4 @@ clean:
 	rm -rf $(BIN)
 
 check: $(TARGET)
-	$(TARGET) --config example.json --verify-json
+	$(TARGET) --config example.json --verify
