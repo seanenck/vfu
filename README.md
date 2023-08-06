@@ -23,7 +23,7 @@ While there is quite a bit of divergence, the major changes are really:
   passed via the `-c` flag
 - bridged networking functionality is (currently) removed
 - shared directory support (including readonly) via virtio is added
-- a static mac can be attached
+- one (or more) static MACs can be attached
 - no tty options
 
 ## Configuration
@@ -65,6 +65,14 @@ vim alpine.json
        "readonly": "yes"
     }
   },
-  "mac": "12:34:56:78:90:ab"
+  "network": [
+    {
+      "mac": "12:34:56:78:90:ab",
+      "mode": "nat"
+    },
+    {
+      "mode": "nat"
+    }
+  ]
 }
 ```

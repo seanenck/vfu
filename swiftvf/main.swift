@@ -34,7 +34,7 @@ func  getVMConfig(memoryMB: UInt64,
                   initrdPath: String,
                   disks: Array<Dictionary<String, String>>,
                   shares: Dictionary<String, Dictionary<String, String>>,
-                  networkMAC: String) throws -> VZVirtualMachineConfiguration {
+                  networking: Array<Dictionary<String, String>>) throws -> VZVirtualMachineConfiguration {
     let kernelURL = URL(fileURLWithPath: kernelPath)
     let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
     bootLoader.commandLine = commandLine
@@ -42,23 +42,43 @@ func  getVMConfig(memoryMB: UInt64,
         bootLoader.initialRamdiskURL = URL(fileURLWithPath: initrdPath)
     }
 
-    print("configuring - kernel: \(kernelPath), initrd: \(initrdPath), cmdline: \(commandLine), mac: \(networkMAC)")
+    print("configuring - kernel: \(kernelPath), initrd: \(initrdPath), cmdline: \(commandLine)")
     let config = VZVirtualMachineConfiguration()
     config.bootLoader = bootLoader
     config.cpuCount = numCPUs
     config.memorySize = memoryMB * 1024*1024
     config.serialPorts = [createConsoleConfiguration()]
 
-    let networkDevice = VZNATNetworkDeviceAttachment()
-    let networkConfig = VZVirtioNetworkDeviceConfiguration()
-    if (networkMAC != "") {
-        guard let addr = VZMACAddress(string: networkMAC) else {
-            throw VMError.runtimeError("invalid MAC address: \(networkMAC)")
+    var networkConfigs = Array<VZVirtioNetworkDeviceConfiguration>()
+    var networkAttachments = Set<String>()
+    for network in networking {
+        let networkMode = (network["mode"] ?? "")
+        let networkConfig = VZVirtioNetworkDeviceConfiguration()
+        var networkIdentifier = ""
+        var networkIdentifierMessage = ""
+        switch (networkMode) {
+        case "nat":
+            let networkMAC = (network["mac"] ?? "")
+            if (networkMAC != "") {
+                guard let addr = VZMACAddress(string: networkMAC) else {
+                    throw VMError.runtimeError("invalid MAC address: \(networkMAC)")
+                }
+                networkConfig.macAddress = addr
+            }
+            networkIdentifier = networkMAC
+            networkIdentifierMessage = "multiple NAT devices using same or empty MAC is not allowed \(networkMAC)"
+            networkConfig.attachment = VZNATNetworkDeviceAttachment()
+            print("NAT network attached (mac? \(networkMAC))")
+        default:
+            throw VMError.runtimeError("unknown network mode: \(networkMode)")
         }
-        networkConfig.macAddress = addr
+        if (networkAttachments.contains(networkIdentifier)) {
+            throw VMError.runtimeError(networkIdentifierMessage)
+        }
+        networkAttachments.insert(networkIdentifier)
+        networkConfigs.append(networkConfig)
     }
-    networkConfig.attachment = networkDevice
-    config.networkDevices = [networkConfig]
+    config.networkDevices = networkConfigs
     
     config.entropyDevices = [VZVirtioEntropyDeviceConfiguration()]
     var allStorage = Array<VZVirtioBlockDeviceConfiguration>()
@@ -153,7 +173,7 @@ func run() {
         fatalError("kernel path is not set")
     }
     let initrd = ((object["initrd"] as? String) ?? "")
-    let mac = ((object["mac"] as? String) ?? "")
+    let network = ((object["network"] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>())
     let cmd = ((object["cmdline"] as? String) ?? "console=hvc0")
     let cpus = ((object["cpus"] as? Int) ?? 1)
     if (cpus <= 0) {
@@ -167,7 +187,7 @@ func run() {
     let shares = ((object["shares"] as? Dictionary<String, Dictionary<String, String>>) ?? Dictionary<String, Dictionary<String, String>>())
 
     do {
-        let config = try getVMConfig(memoryMB: mem, numCPUs: cpus, commandLine: cmd, kernelPath: kernel, initrdPath: initrd, disks: disks, shares: shares, networkMAC: mac)
+        let config = try getVMConfig(memoryMB: mem, numCPUs: cpus, commandLine: cmd, kernelPath: kernel, initrdPath: initrd, disks: disks, shares: shares, networking: network)
         try config.validate()
         let queue = DispatchQueue(label: "secondary queue")
         let vm = VZVirtualMachine(configuration: config, queue: queue)
