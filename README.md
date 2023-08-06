@@ -20,7 +20,7 @@ to get `swiftvf` working:
 While there is quite a bit of divergence, the major changes are really:
 
 - instead of CLI arguments for all parameters, a JSON configuration file is
-  passed via the `--config` flag (pass `--verify-json` to check JSON without
+  passed via the `--config` flag (pass `--verify` to check the configuration without
   running the VM)
 - bridged networking functionality is (currently) removed
 - shared directory support (including readonly) via virtio is added

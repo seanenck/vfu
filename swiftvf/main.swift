@@ -3,7 +3,7 @@ import Virtualization
 
 let configOption = "--config"
 let helpOption = "--help"
-let verifyOption = "--verify-json"
+let verifyOption = "--verify"
 let configFileTemplate = "<configuration file>"
 let minMemory: UInt64 = 128
 let readonlyJSONKey = "readonly"
@@ -104,6 +104,7 @@ func  getVMConfig(memoryMB: UInt64,
     var networkConfigs = Array<VZVirtioNetworkDeviceConfiguration>()
     var networkAttachments = Set<String>()
     for network in networking {
+        try checkKeys(keys: Array(network.keys), allowed: networkJSONKeys)
         let networkMode = (network[networkModeJSONKey] ?? "")
         let networkConfig = VZVirtioNetworkDeviceConfiguration()
         var networkIdentifier = ""
@@ -135,6 +136,7 @@ func  getVMConfig(memoryMB: UInt64,
     config.entropyDevices = [VZVirtioEntropyDeviceConfiguration()]
     var allStorage = Array<VZVirtioBlockDeviceConfiguration>()
     for disk in disks {
+        try checkKeys(keys: Array(disk.keys), allowed: diskJSONKeys)
         let diskPath = (disk[diskPathJSONKey] ?? "")
         if (diskPath == "") {
             throw VMError.runtimeError("invalid disk, empty path")
@@ -156,6 +158,7 @@ func  getVMConfig(memoryMB: UInt64,
                 throw VMError.runtimeError("invalid tag: \(key)")
             }
             let local = try readShare(key: key, shares: shares)
+            try checkKeys(keys: Array(local.keys), allowed: shareJSONKeys)
             let sharePath = (local[sharePathJSONKey] ?? "")
             if (sharePath == "") {
                 throw VMError.runtimeError("empty share path: \(key)")
@@ -256,21 +259,11 @@ func run() {
 
     do {
         try checkKeys(keys: Array(object.keys), allowed: topLevelJSONKeys)
-        for disk in disks {
-            try checkKeys(keys: Array(disk.keys), allowed: diskJSONKeys)
-        }
-        for shareKey in shares.keys {
-            let share = try readShare(key: shareKey, shares: shares)
-            try checkKeys(keys: Array(share.keys), allowed: shareJSONKeys)
-        }
-        for network in networks {
-            try checkKeys(keys: Array(network.keys), allowed: networkJSONKeys)
-        }
+        let config = try getVMConfig(memoryMB: mem, numCPUs: cpus, commandLine: cmd, kernelPath: kernel, initrdPath: initrd, disks: disks, shares: shares, networking: networks)
+        try config.validate()
         if (verifyMode) {
             return
         }
-        let config = try getVMConfig(memoryMB: mem, numCPUs: cpus, commandLine: cmd, kernelPath: kernel, initrdPath: initrd, disks: disks, shares: shares, networking: networks)
-        try config.validate()
         let queue = DispatchQueue(label: "secondary queue")
         let vm = VZVirtualMachine(configuration: config, queue: queue)
         queue.sync{
