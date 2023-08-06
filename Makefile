@@ -12,7 +12,7 @@ prep:
 	mkdir -p $(BIN)
 
 $(GEN): $(CODE)
-	cat generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -d " " -f 1)/g' > $@
+	cat generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -c 1-7)/g' > $@
 
 $(TARGET): $(GEN) $(CODE)
 	swiftc $(FLAGS) -o $(TARGET) $(CODE) $(GEN)
