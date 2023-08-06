@@ -183,10 +183,10 @@ func readShare(key: String, shares: Dictionary<String, Dictionary<String, String
     return local
 }
 
-func usage(invalidArgument: String) {
+func usage(message: String) {
     print("swiftvf:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n")
-    if (invalidArgument != "") {
-        fatalError("invalid argument")
+    if (message != "") {
+        fatalError(message)
     }
 }
 
@@ -202,45 +202,48 @@ func readJSON(path: String) -> [String: Any]? {
         }
         return nil
     } catch {
-        fatalError("unable to read JSON from file \(path)")
+        fatalError("unable to read JSON from file: \(path)")
     }
 }
 
 func run() {
     var jsonConfig = ""
-    var idx = 0
+    var inConfig = false
     var verifyMode = false
+    var isFirst = true
     for argument in CommandLine.arguments {
-        switch (idx) {
-        case 0:
-            break
-        case 1:
-            switch (argument) {
-            case configOption:
-                break
-            case helpOption:
-                usage(invalidArgument: "")
-                return
-            case versionOption:
-                let vers = version()
-                print("\(vers)")
-                return
-            default:
-                usage(invalidArgument: argument)
+        if (isFirst) {
+            isFirst = false
+            continue
+        }
+        switch (argument) {
+        case configOption:
+            if (jsonConfig != "") {
+                usage(message: "\(configOption) already specified")
             }
-        case 2:
-            jsonConfig = argument
-        case 3:
-            if (argument != verifyOption) {
-                usage(invalidArgument: argument)
+            inConfig = true
+        case helpOption:
+            usage(message: "")
+            return
+        case versionOption:
+            let vers = version()
+            print("\(vers)")
+            return
+        case verifyOption:
+            if verifyMode {
+                usage(message: "\(verifyOption) already specified")
             }
             verifyMode = true
         default:
-            fatalError("unknown argument: \(argument)")
+            if (inConfig) {
+                jsonConfig = argument
+                inConfig = false
+            } else {
+                usage(message: "unknown argument: \(argument)")
+            }
         }
-        idx += 1
     }
-    if (jsonConfig == "") {
+    if (jsonConfig == "" || inConfig) {
         fatalError("no JSON config given")
     }
     let object = (readJSON(path: jsonConfig) ?? Dictionary())
