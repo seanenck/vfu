@@ -15,7 +15,8 @@ let networkJSONKey = "network"
 let commandLineJSONKey = "cmdline"
 let shareJSONKey = "shares"
 let diskJSONKey = "disks"
-let resolveHomeIndicator = "~/"
+let pathSeparator = "/"
+let resolveHomeIndicator = "~" + pathSeparator
 let topLevelJSONKeys: Set<String> = [kernelJSONKey,
                                      initrdJSONKey,
                                      cpuJSONKey,
@@ -63,13 +64,13 @@ func resolveUserHome(path: String) -> URL {
     if (!path.hasPrefix(resolveHomeIndicator)) {
         return URL(fileURLWithPath: path)
     }
-    var homeDirURL = FileManager.default.homeDirectoryForCurrentUser
+    let homeDirURL = FileManager.default.homeDirectoryForCurrentUser
     if (path == resolveHomeIndicator) {
         return homeDirURL
     } else {
-        let sub = path.dropFirst(resolveHomeIndicator.count)
-        homeDirURL.append(path: String(sub))
-        return homeDirURL
+        let sub = String(path.dropFirst(resolveHomeIndicator.count))
+        let components = homeDirURL.path(percentEncoded: false)
+        return URL(fileURLWithPath: [components, sub].joined(separator: pathSeparator))
     }
 }
 
