@@ -72,6 +72,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "swiftvf" */;
 			buildPhases = (
+				A86F87A72A805905007675FA /* ShellScript */,
 				A87451C22A7DA3D900092602 /* Sources */,
 				A87451C32A7DA3D900092602 /* Frameworks */,
 				A87451C42A7DA3D900092602 /* CopyFiles */,
@@ -117,6 +118,27 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A86F87A72A805905007675FA /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make
+";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A87451C22A7DA3D900092602 /* Sources */ = {
