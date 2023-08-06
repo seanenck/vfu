@@ -28,6 +28,8 @@ clean:
 check: $(TARGET)
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(TARGET) --config example.json --verify
+	$(TARGET) --version
+	$(TARGET) --help
 
 install:
 	install -m755 $(TARGET) $(DESTDIR)
