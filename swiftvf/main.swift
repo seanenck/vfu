@@ -68,9 +68,10 @@ func resolveUserHome(path: String) -> URL {
     if (path == resolveHomeIndicator) {
         return homeDirURL
     } else {
-        let sub = String(path.dropFirst(resolveHomeIndicator.count))
-        let components = homeDirURL.path(percentEncoded: false)
-        return URL(fileURLWithPath: [components, sub].joined(separator: pathSeparator))
+        var components = homeDirURL.pathComponents
+        components.append(String(path.dropFirst(resolveHomeIndicator.count)))
+        let pathing = components.joined(separator: pathSeparator)
+        return URL(fileURLWithPath: pathing)
     }
 }
 
