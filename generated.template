@@ -1,0 +1,3 @@
+func version() -> String {
+    return "{HASH}"
+}
