@@ -5,19 +5,19 @@
   "memory": 8192, 
   "disks": [
     { 
-      "path": "alpine-standard-3.18.2-aarch64.iso",
+      "path": "build/alpine-standard-3.18.2-aarch64.iso",
       "readonly": "yes"
     },
     { 
-      "path": "apkovl.img"
+      "path": "build/apkovl.img"
     },
     { 
-      "path": "data.img"
+      "path": "build/data.img"
     }
   ],
   "shares": {
     "downloads": {
-       "path": "/Users/me/Downloads"
+       "path": "/Users"
     },
     "documents": {
        "path": "~/Documents",
