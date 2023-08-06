@@ -1,7 +1,7 @@
 import Foundation
 import Virtualization
 
-let MIN_MEMORY: UInt64 = 128;
+let minMemory: UInt64 = 128
 
 enum VMError: Error {
     case runtimeError(String)
@@ -23,95 +23,92 @@ func createConsoleConfiguration() -> VZSerialPortConfiguration {
 }
 
 
-func is_read_only(data: Dictionary<String, String>) -> Bool {
-    let readonly = (data["readonly"] ?? "");
-    return readonly == "yes";
+func isReadOnly(data: Dictionary<String, String>) -> Bool {
+    return (data["readonly"] ?? "") == "yes"
 }
 
-func  getVMConfig(mem_size_mb: UInt64,
-                  nr_cpus: Int,
-                  cmdline: String,
-                  kernel_path: String,
-                  initrd_path: String,
+func  getVMConfig(memoryMB: UInt64,
+                  numCPUs: Int,
+                  commandLine: String,
+                  kernelPath: String,
+                  initrdPath: String,
                   disks: Array<Dictionary<String, String>>,
                   shares: Dictionary<String, Dictionary<String, String>>,
-                  mac_address: String) throws -> VZVirtualMachineConfiguration {
-    let kernelURL = URL(fileURLWithPath: kernel_path);
-    let lbl: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
-    lbl.commandLine = cmdline;
-    if (initrd_path != "") {
-        lbl.initialRamdiskURL = URL(fileURLWithPath: initrd_path);
+                  networkMAC: String) throws -> VZVirtualMachineConfiguration {
+    let kernelURL = URL(fileURLWithPath: kernelPath)
+    let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
+    bootLoader.commandLine = commandLine
+    if (initrdPath != "") {
+        bootLoader.initialRamdiskURL = URL(fileURLWithPath: initrdPath)
     }
 
-    print("configuring - kernel: \(kernel_path), initrd: \(initrd_path), cmdline: \(cmdline), mac: \(mac_address)");
-    let config = VZVirtualMachineConfiguration();
-    config.bootLoader = lbl;
-    config.cpuCount = nr_cpus;
-    config.memorySize = mem_size_mb * 1024*1024;
-    config.serialPorts = [createConsoleConfiguration()];
+    print("configuring - kernel: \(kernelPath), initrd: \(initrdPath), cmdline: \(commandLine), mac: \(networkMAC)")
+    let config = VZVirtualMachineConfiguration()
+    config.bootLoader = bootLoader
+    config.cpuCount = numCPUs
+    config.memorySize = memoryMB * 1024*1024
+    config.serialPorts = [createConsoleConfiguration()]
 
-    let nda = VZNATNetworkDeviceAttachment();
-    let net_conf = VZVirtioNetworkDeviceConfiguration()
-    if (mac_address != "") {
-        guard let addr = VZMACAddress(string: mac_address) else {
-            throw VMError.runtimeError("invalid MAC address: \(mac_address)");
+    let networkDevice = VZNATNetworkDeviceAttachment()
+    let networkConfig = VZVirtioNetworkDeviceConfiguration()
+    if (networkMAC != "") {
+        guard let addr = VZMACAddress(string: networkMAC) else {
+            throw VMError.runtimeError("invalid MAC address: \(networkMAC)")
         }
-        net_conf.macAddress = addr;
+        networkConfig.macAddress = addr
     }
-    net_conf.attachment = nda;
-    config.networkDevices = [net_conf];
+    networkConfig.attachment = networkDevice
+    config.networkDevices = [networkConfig]
     
-    config.entropyDevices = [VZVirtioEntropyDeviceConfiguration()];
-    var all_storage = Array<VZVirtioBlockDeviceConfiguration>();
+    config.entropyDevices = [VZVirtioEntropyDeviceConfiguration()]
+    var allStorage = Array<VZVirtioBlockDeviceConfiguration>()
     for disk in disks {
-        let disk_path = (disk["path"] ?? "");
-        if (disk_path == "") {
-            throw VMError.runtimeError("invalid disk, empty path");
+        let diskPath = (disk["path"] ?? "")
+        if (diskPath == "") {
+            throw VMError.runtimeError("invalid disk, empty path")
         }
-        let disk_url = URL(fileURLWithPath: disk_path);
-        guard let disk_obj = try? VZDiskImageStorageDeviceAttachment(url: disk_url, readOnly: is_read_only(data: disk)) else {
-            throw VMError.runtimeError("invalid disk: \(disk_path)");
+        guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: URL(fileURLWithPath: diskPath), readOnly: isReadOnly(data: disk)) else {
+            throw VMError.runtimeError("invalid disk: \(diskPath)")
         }
-        all_storage.append(VZVirtioBlockDeviceConfiguration(attachment: disk_obj));
-        print("attaching disk: \(disk_path)")
+        allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
+        print("attaching disk: \(diskPath)")
     }
-    config.storageDevices = all_storage;
+    config.storageDevices = allStorage
 
     if (shares.count > 0) {
-        var all_shares = Array<VZVirtioFileSystemDeviceConfiguration>();
+        var allShares = Array<VZVirtioFileSystemDeviceConfiguration>()
         for key in shares.keys {
-            guard let local = shares[key] else {
-                throw VMError.runtimeError("unable to read share data");
-            }
-            let share_path = (local["path"] ?? "");
-            if (share_path == "") {
-                throw VMError.runtimeError("empty share path: \(key)");
-            }
-            let share_url = URL(fileURLWithPath: share_path);
             do {
                 try VZVirtioFileSystemDeviceConfiguration.validateTag(key)
             } catch {
-                throw VMError.runtimeError("invalid tag: \(key)");
+                throw VMError.runtimeError("invalid tag: \(key)")
             }
-            let dir_share = VZSharedDirectory(url:share_url, readOnly: is_read_only(data: local));
-            let single_dir = VZSingleDirectoryShare(directory: dir_share);
-            let share_config = VZVirtioFileSystemDeviceConfiguration(tag: key);
-            share_config.share = single_dir;
-            all_shares.append(share_config);
-            print("sharing: \(key) -> \(share_path)");
+            guard let local = shares[key] else {
+                throw VMError.runtimeError("unable to read share data")
+            }
+            let sharePath = (local["path"] ?? "")
+            if (sharePath == "") {
+                throw VMError.runtimeError("empty share path: \(key)")
+            }
+            let directoryShare = VZSharedDirectory(url:URL(fileURLWithPath: sharePath), readOnly: isReadOnly(data: local))
+            let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
+            let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
+            shareConfig.share = singleDirectory
+            allShares.append(shareConfig)
+            print("sharing: \(key) -> \(sharePath)")
          }
-         config.directorySharingDevices = all_shares;
+         config.directorySharingDevices = allShares
     }
-    return config;
+    return config
 }
 
 func usage() {
-     print("swiftvf:\n  -c/-config <configuration file (json)> [REQUIRED]\n  -h/-help\n");
+     print("swiftvf:\n  -c/-config <configuration file (json)> [REQUIRED]\n  -h/-help\n")
 }
 
 func readJSON(path: String) -> [String: Any]? {
     do {
-        let text = try String(contentsOfFile: path);
+        let text = try String(contentsOfFile: path)
         if let data = text.data(using: .utf8) {
             do {
                 return try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
@@ -121,65 +118,65 @@ func readJSON(path: String) -> [String: Any]? {
         }
         return nil
     } catch {
-        fatalError("unable to read JSON from file \(path)");
+        fatalError("unable to read JSON from file \(path)")
     }
 }
 
 func run() {
-    var json_config = "";
-    var idx = 0;
+    var jsonConfig = ""
+    var idx = 0
     for argument in CommandLine.arguments {
         switch (idx) {
         case 0:
-            break;
+            break
         case 1:
             if (argument != "-c" && argument != "-config") {
                 if (argument == "-help" || argument == "-h") {
-                    usage();
-                    return;
+                    usage()
+                    return
                 }
-                fatalError("invalid argument: \(argument)");
+                fatalError("invalid argument: \(argument)")
             }
         case 2:
-            json_config = argument;
+            jsonConfig = argument
         default:
-            fatalError("unknown argument: \(argument)");
+            fatalError("unknown argument: \(argument)")
         }
-        idx += 1;
+        idx += 1
     }
-    if (json_config == "") {
-        fatalError("no JSON config given");
+    if (jsonConfig == "") {
+        fatalError("no JSON config given")
     }
-    let object = (readJSON(path: json_config) ?? Dictionary())
-    let kernel = ((object["kernel"] as? String) ?? "");
+    let object = (readJSON(path: jsonConfig) ?? Dictionary())
+    let kernel = ((object["kernel"] as? String) ?? "")
     if (kernel == "") {
-        fatalError("kernel path is not set");
+        fatalError("kernel path is not set")
     }
-    let initrd = ((object["initrd"] as? String) ?? "");
-    let mac = ((object["mac"] as? String) ?? "");
-    let cmd = ((object["cmdline"] as? String) ?? "console=hvc0");
-    let cpus = ((object["cpus"] as? Int) ?? 1);
+    let initrd = ((object["initrd"] as? String) ?? "")
+    let mac = ((object["mac"] as? String) ?? "")
+    let cmd = ((object["cmdline"] as? String) ?? "console=hvc0")
+    let cpus = ((object["cpus"] as? Int) ?? 1)
     if (cpus <= 0) {
-        fatalError("cpu count must be > 0");
+        fatalError("cpu count must be > 0")
     }
-    let mem = ((object["memory"] as? UInt64) ?? MIN_MEMORY);
-    if (mem < MIN_MEMORY) {
-        fatalError("memory must be >= \(MIN_MEMORY)");
+    let mem = ((object["memory"] as? UInt64) ?? minMemory)
+    if (mem < minMemory) {
+        fatalError("memory must be >= \(minMemory)")
     }
-    let disks = ((object["disks"] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>());
-    let shares = ((object["shares"] as? Dictionary<String, Dictionary<String, String>>) ?? Dictionary<String, Dictionary<String, String>>());
+    let disks = ((object["disks"] as? Array<Dictionary<String, String>>) ?? Array<Dictionary<String, String>>())
+    let shares = ((object["shares"] as? Dictionary<String, Dictionary<String, String>>) ?? Dictionary<String, Dictionary<String, String>>())
 
     do {
-        let config = try getVMConfig(mem_size_mb: mem, nr_cpus: cpus, cmdline: cmd, kernel_path: kernel, initrd_path: initrd, disks: disks, shares: shares, mac_address: mac);
+        let config = try getVMConfig(memoryMB: mem, numCPUs: cpus, commandLine: cmd, kernelPath: kernel, initrdPath: initrd, disks: disks, shares: shares, networkMAC: mac)
         try config.validate()
-        let queue = DispatchQueue(label: "secondary queue");
-        let vm = VZVirtualMachine(configuration: config, queue: queue);
+        let queue = DispatchQueue(label: "secondary queue")
+        let vm = VZVirtualMachine(configuration: config, queue: queue)
         queue.sync{
             if (!vm.canStart) {
-                fatalError("vm can not start");
+                fatalError("vm can not start")
             }
         }
-        print("vm ready");
+        print("vm ready")
         queue.sync{
             vm.start(completionHandler: { (result) in
                 if case let .failure(error) = result {
@@ -187,16 +184,16 @@ func run() {
                 }
             })
         }
-        print("vm initialized");
+        print("vm initialized")
         sleep(1)
         while (vm.state == VZVirtualMachine.State.running || vm.state == VZVirtualMachine.State.starting) {
-            sleep(1);
+            sleep(1)
         }
     } catch VMError.runtimeError(let errorMessage) {
-        fatalError("vm error: \(errorMessage)");
+        fatalError("vm error: \(errorMessage)")
     } catch (let errorMessage) {
-        fatalError("error: \(errorMessage)");
+        fatalError("error: \(errorMessage)")
     }
 }
 
-run();
+run()
