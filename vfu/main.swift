@@ -244,9 +244,15 @@ func usage(message: String) {
         print("  \(indent)\(flag)\(spacing)\(extra)")
     }
     print("")
+    vers()
     if (message != "") {
         fatalError(message)
     }
+}
+
+func vers() {
+    let v = version()
+    print("version: \(v)")
 }
 
 func parseArguments() -> Arguments? {
@@ -267,8 +273,7 @@ func parseArguments() -> Arguments? {
                 found = true
                 switch (flag) {
                     case versionOption:
-                        let vers = version()
-                        print("\(vers)")
+                        vers()
                         return nil
                     case configOption:
                         if (pos == arguments) {
