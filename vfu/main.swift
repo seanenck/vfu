@@ -71,7 +71,7 @@ func resolveUserHome(path: String) -> URL {
     }
 }
 
-func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachineConfiguration {
+func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws -> VZVirtualMachineConfiguration {
     let kernelURL = resolveUserHome(path: cfg.kernel)
     let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
     let cmdline = (cfg.cmdline ?? "console=hvc0")
@@ -80,8 +80,9 @@ func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachine
     if (initrd != "") {
         bootLoader.initialRamdiskURL = resolveUserHome(path: initrd)
     }
-
-    print("configuring - kernel: \(cfg.kernel), initrd: \(initrd), cmdline: \(cmdline)")
+    if (debugging) {
+        print("configuring - kernel: \(cfg.kernel), initrd: \(initrd), cmdline: \(cmdline)")
+    }
     let config = VZVirtualMachineConfiguration()
     config.bootLoader = bootLoader
     config.cpuCount = cfg.cpus
@@ -99,9 +100,13 @@ func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachine
                 attach = false
                 break
             case serialMaskedFull:
-                print("NOTICE: serial console masking is on, this may interfere with normal stdin/stdout")
+                if (debugging) {
+                    print("NOTICE: serial console masking is on, this may interfere with normal stdin/stdout")
+                }
             case "raw":
-                print("attaching raw serial console")
+                if (debugging) {
+                    print("attaching raw serial console")
+                }
                 masked = false
             default:
                 throw VMError.runtimeError("unknown serial mode: \(serialMode)")
@@ -129,7 +134,9 @@ func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachine
             networkIdentifier = mac
             networkIdentifierMessage = "multiple NAT devices using same or empty MAC is not allowed \(mac)"
             networkConfig.attachment = VZNATNetworkDeviceAttachment()
-            print("NAT network attached (mac? \(mac))")
+            if (debugging) {
+                print("NAT network attached (mac? \(mac))")
+            }
         default:
             throw VMError.runtimeError("unknown network mode: \(network.mode)")
         }
@@ -152,7 +159,9 @@ func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachine
             throw VMError.runtimeError("invalid disk: \(disk.path)")
         }
         allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
-        print("attaching disk: \(disk.path), ro: \(ro)")
+        if (debugging) {
+            print("attaching disk: \(disk.path), ro: \(ro)")
+        }
     }
     config.storageDevices = allStorage
 
@@ -177,7 +186,9 @@ func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachine
             let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
             shareConfig.share = singleDirectory
             allShares.append(shareConfig)
-            print("sharing: \(key) -> \(local.path), ro: \(ro)")
+            if (debugging) {
+                print("sharing: \(key) -> \(local.path), ro: \(ro)")
+            }
          }
          config.directorySharingDevices = allShares
     }
@@ -245,6 +256,17 @@ func run() {
             }
         }
     }
+    var isDebug = false
+    if let value = ProcessInfo.processInfo.environment["VFU_DEBUG"] {
+        switch (value) {
+            case "1":
+                isDebug = true
+            case "0":
+                break
+            default:
+                fatalError("unknown debug setting...")
+        }
+    }
     if (jsonConfig == "" || inConfig) {
         fatalError("no JSON config given")
     }
@@ -256,7 +278,7 @@ func run() {
         fatalError("cpu count must be > 0")
     }
     do {
-        let config = try getVMConfig(cfg: object, verifying: verifyMode)
+        let config = try getVMConfig(cfg: object, verifying: verifyMode, debugging: isDebug)
         try config.validate()
         if (verifyMode) {
             return
@@ -268,7 +290,9 @@ func run() {
                 fatalError("vm can not start")
             }
         }
-        print("vm ready")
+        if (isDebug) {
+            print("vm ready")
+        }
         queue.sync{
             vm.start(completionHandler: { (result) in
                 if case let .failure(error) = result {
@@ -276,7 +300,9 @@ func run() {
                 }
             })
         }
-        print("vm initialized")
+        if (isDebug) {
+            print("vm initialized")
+        }
         sleep(1)
         while (vm.state == VZVirtualMachine.State.running || vm.state == VZVirtualMachine.State.starting) {
             sleep(1)
