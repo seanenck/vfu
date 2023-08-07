@@ -6,7 +6,6 @@ let helpOption = "--help"
 let verifyOption = "--verify"
 let versionOption = "--version"
 let configFileTemplate = "<configuration file>"
-let readonlyOn = "yes"
 let pathSeparator = "/"
 let resolveHomeIndicator = "~" + pathSeparator
 let minMemory: UInt64 = 128
@@ -23,7 +22,7 @@ struct Configuration: Decodable {
 }
 struct DiskConfiguration: Decodable {
     var path: String
-    var readonly: String?
+    var readonly: Bool?
 }
 struct NetworkConfiguration: Decodable {
     var mac: String?
@@ -31,7 +30,7 @@ struct NetworkConfiguration: Decodable {
 }
 struct ShareConfiguration: Decodable {
     var path: String
-    var readonly: String?
+    var readonly: Bool?
 }
 
 enum VMError: Error {
@@ -125,7 +124,7 @@ func  getVMConfig(cfg: Configuration) throws -> VZVirtualMachineConfiguration {
         if (disk.path == "") {
             throw VMError.runtimeError("invalid disk, empty path")
         }
-        let ro = ((disk.readonly ?? "") == readonlyOn)
+        let ro = (disk.readonly ?? false)
         guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: resolveUserHome(path: disk.path), readOnly: ro) else {
             throw VMError.runtimeError("invalid disk: \(disk.path)")
         }
@@ -149,7 +148,7 @@ func  getVMConfig(cfg: Configuration) throws -> VZVirtualMachineConfiguration {
             if (local.path == "") {
                 throw VMError.runtimeError("empty share path: \(key)")
             }
-            let ro = ((local.readonly ?? "") == readonlyOn)
+            let ro = (local.readonly ?? false)
             let directoryShare = VZSharedDirectory(url:resolveUserHome(path: local.path), readOnly: ro)
             let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
             let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
