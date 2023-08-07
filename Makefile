@@ -25,7 +25,7 @@ clean:
 	rm -rf $(BIN)
 	rm -f $(GEN)
 
-check: $(TARGET)
+check: sign 
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(TARGET) --config example.json --verify
 	$(TARGET) --version

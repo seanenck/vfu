@@ -5,11 +5,12 @@ let configOption = "--config"
 let helpOption = "--help"
 let verifyOption = "--verify"
 let versionOption = "--version"
-let configFileTemplate = "<configuration file>"
+let verboseOption = "--verbose"
 let pathSeparator = "/"
 let resolveHomeIndicator = "~" + pathSeparator
 let minMemory: UInt64 = 128
 let serialMaskedFull = "masked"
+let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, verboseOption]
 
 struct Configuration: Decodable {
     var kernel: String
@@ -33,6 +34,37 @@ struct NetworkConfiguration: Decodable {
 struct ShareConfiguration: Decodable {
     var path: String
     var readonly: Bool?
+}
+
+struct Arguments {
+    var verbose: Bool
+    var verify: Bool
+    var config: String
+
+    func readJSON() -> Configuration {
+        do {
+            if (self.config == "") {
+                fatalError("no JSON configuration file given")
+            }
+            let text = try String(contentsOfFile: self.config)
+            if let data = text.data(using: .utf8) {
+                do {
+                    let config: Configuration = try JSONDecoder().decode(Configuration.self, from: data)
+                    return config
+                } catch {
+                    print(error.localizedDescription)
+                }
+            }
+            fatalError("failed to parse JSON file: \(self.config)")
+        } catch {
+            fatalError("unable to read JSON from file: \(self.config)")
+        }
+    }
+    func log(message: String) {
+        if (self.verbose) {
+            print(message)
+        }
+    }
 }
 
 enum VMError: Error {
@@ -71,7 +103,7 @@ func resolveUserHome(path: String) -> URL {
     }
 }
 
-func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws -> VZVirtualMachineConfiguration {
+func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
     let kernelURL = resolveUserHome(path: cfg.kernel)
     let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
     let cmdline = (cfg.cmdline ?? "console=hvc0")
@@ -80,9 +112,7 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
     if (initrd != "") {
         bootLoader.initialRamdiskURL = resolveUserHome(path: initrd)
     }
-    if (debugging) {
-        print("configuring - kernel: \(cfg.kernel), initrd: \(initrd), cmdline: \(cmdline)")
-    }
+    args.log(message: "configuring - kernel: \(cfg.kernel), initrd: \(initrd), cmdline: \(cmdline)")
     let config = VZVirtualMachineConfiguration()
     config.bootLoader = bootLoader
     config.cpuCount = cfg.cpus
@@ -91,7 +121,7 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
         throw VMError.runtimeError("not enough memory for VM")
     }
     config.memorySize = (cfg.memory ?? minMemory) * 1024*1024
-    if (!verifying) {
+    if (!args.verify) {
         let serialMode = (cfg.serial ?? serialMaskedFull)
         var masked = true
         var attach = true
@@ -100,13 +130,9 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
                 attach = false
                 break
             case serialMaskedFull:
-                if (debugging) {
-                    print("NOTICE: serial console masking is on, this may interfere with normal stdin/stdout")
-                }
+                args.log(message: "NOTICE: serial console masking is on, this may interfere with normal stdin/stdout")
             case "raw":
-                if (debugging) {
-                    print("attaching raw serial console")
-                }
+                args.log(message: "attaching raw serial console")
                 masked = false
             default:
                 throw VMError.runtimeError("unknown serial mode: \(serialMode)")
@@ -134,9 +160,7 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
             networkIdentifier = mac
             networkIdentifierMessage = "multiple NAT devices using same or empty MAC is not allowed \(mac)"
             networkConfig.attachment = VZNATNetworkDeviceAttachment()
-            if (debugging) {
-                print("NAT network attached (mac? \(mac))")
-            }
+            args.log(message: "NAT network attached (mac? \(mac))")
         default:
             throw VMError.runtimeError("unknown network mode: \(network.mode)")
         }
@@ -159,9 +183,7 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
             throw VMError.runtimeError("invalid disk: \(disk.path)")
         }
         allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
-        if (debugging) {
-            print("attaching disk: \(disk.path), ro: \(ro)")
-        }
+        args.log(message: "attaching disk: \(disk.path), ro: \(ro)")
     }
     config.storageDevices = allStorage
 
@@ -186,9 +208,7 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
             let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
             shareConfig.share = singleDirectory
             allShares.append(shareConfig)
-            if (debugging) {
-                print("sharing: \(key) -> \(local.path), ro: \(ro)")
-            }
+            args.log(message: "sharing: \(key) -> \(local.path), ro: \(ro)")
          }
          config.directorySharingDevices = allShares
     }
@@ -196,81 +216,94 @@ func getVMConfig(cfg: Configuration, verifying: Bool, debugging: Bool) throws ->
 }
 
 func usage(message: String) {
-    print("vfu:\n  \(configOption) \(configFileTemplate)\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n")
+    print("vfu:")
+    for flag in commandLineFlags {
+        var indent = ""
+        var extra = ""
+        switch (flag) {
+            case configOption:
+                extra = "<configuration file>"
+            case verifyOption:
+                extra = "verify the configuration only"
+                indent = "  "
+            case helpOption:
+                extra = "display this help text"
+            case verboseOption:
+                extra = "include verbose output"
+            case versionOption:
+                extra = "output the version"
+            default:
+                break
+        }
+        var spacing = ""
+        var idx = 15 - indent.count
+        while (idx > flag.count) {
+            spacing = "\(spacing) "
+            idx -= 1
+        }
+        print("  \(indent)\(flag)\(spacing)\(extra)")
+    }
+    print("")
     if (message != "") {
         fatalError(message)
     }
 }
 
-func readJSON(path: String) -> Configuration {
-    do {
-        let text = try String(contentsOfFile: path)
-        if let data = text.data(using: .utf8) {
-            do {
-                let config: Configuration = try JSONDecoder().decode(Configuration.self, from: data)
-                return config
-            } catch {
-                print(error.localizedDescription)
+func parseArguments() -> Arguments? {
+    var jsonConfig = ""
+    var verifyMode = false
+    var isVerbose = false
+    let arguments = CommandLine.arguments.count - 1
+    var matched = 0
+    for flag in commandLineFlags {
+        var pos = 0
+        var found = false
+        for arg in CommandLine.arguments {
+            if arg == flag {
+                if (found) {
+                    fatalError("\(flag) already parsed")
+                }
+                matched += 1
+                found = true
+                switch (flag) {
+                    case versionOption:
+                        let vers = version()
+                        print("\(vers)")
+                        return nil
+                    case configOption:
+                        if (pos == arguments) {
+                            fatalError("config file not specified")
+                        }
+                        jsonConfig = CommandLine.arguments[pos+1]
+                        matched += 1
+                        pos += 1
+                    case helpOption:
+                        usage(message: "")
+                        return nil
+                    case verboseOption:
+                        isVerbose = true
+                    case verifyOption:
+                        verifyMode = true
+                    default:
+                        usage(message: "unexpected flag: \(flag)")
+                }
             }
+            pos += 1
         }
-        fatalError("failed to parse JSON file: \(path)")
-    } catch {
-        fatalError("unable to read JSON from file: \(path)")
     }
+    if (matched != arguments) {
+        usage(message: "unknown flags given")
+    }
+    return Arguments(verbose: isVerbose, verify: verifyMode, config: jsonConfig)
 }
 
 func run() {
-    var jsonConfig = ""
-    var inConfig = false
-    var verifyMode = false
-    var isFirst = true
-    for argument in CommandLine.arguments {
-        if (isFirst) {
-            isFirst = false
-            continue
-        }
-        switch (argument) {
-        case configOption:
-            if (jsonConfig != "" || inConfig) {
-                usage(message: "\(configOption) already specified")
-            }
-            inConfig = true
-        case helpOption:
-            usage(message: "")
-            return
-        case versionOption:
-            let vers = version()
-            print("\(vers)")
-            return
-        case verifyOption:
-            if verifyMode {
-                usage(message: "\(verifyOption) already specified")
-            }
-            verifyMode = true
-        default:
-            if (inConfig) {
-                jsonConfig = argument
-                inConfig = false
-            } else {
-                usage(message: "unknown argument: \(argument)")
-            }
-        }
+    let args = parseArguments()
+    if (args == nil) {
+        return
     }
-    var isDebug = false
-    if let value = ProcessInfo.processInfo.environment["VFU_DEBUG"] {
-        switch (value) {
-            case "1":
-                isDebug = true
-            case "0":
-                break
-            default:
-                fatalError("unknown debug setting...")
-        }
-    }
-    if (jsonConfig == "" || inConfig) {
-        fatalError("no JSON config given")
-    }
-    let object = readJSON(path: jsonConfig)
+    let runArgs = args!
+    let object = runArgs.readJSON()
     if (object.kernel == "") {
         fatalError("kernel path is not set")
     }
@@ -278,9 +311,9 @@ func run() {
         fatalError("cpu count must be > 0")
     }
     do {
-        let config = try getVMConfig(cfg: object, verifying: verifyMode, debugging: isDebug)
+        let config = try getVMConfig(cfg: object, args: runArgs)
         try config.validate()
-        if (verifyMode) {
+        if (runArgs.verify) {
             return
         }
         let queue = DispatchQueue(label: "secondary queue")
@@ -290,9 +323,7 @@ func run() {
                 fatalError("vm can not start")
             }
         }
-        if (isDebug) {
-            print("vm ready")
-        }
+        runArgs.log(message: "vm ready")
         queue.sync{
             vm.start(completionHandler: { (result) in
                 if case let .failure(error) = result {
@@ -300,13 +331,12 @@ func run() {
                 }
             })
         }
-        if (isDebug) {
-            print("vm initialized")
-        }
+        runArgs.log(message: "vm initialized")
         sleep(1)
         while (vm.state == VZVirtualMachine.State.running || vm.state == VZVirtualMachine.State.starting) {
             sleep(1)
         }
+        runArgs.log(message: "exiting")
     } catch VMError.runtimeError(let errorMessage) {
         fatalError("vm error: \(errorMessage)")
     } catch (let errorMessage) {
