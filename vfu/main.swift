@@ -163,7 +163,7 @@ func  getVMConfig(cfg: Configuration) throws -> VZVirtualMachineConfiguration {
 }
 
 func usage(message: String) {
-    print("vfu:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n")
+    print("vfu:\n  \(configOption) \(configFileTemplate)\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n")
     if (message != "") {
         fatalError(message)
     }
