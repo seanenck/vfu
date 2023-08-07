@@ -24,7 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A87451C62A7DA3D900092602 /* swiftvf */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = swiftvf; sourceTree = BUILT_PRODUCTS_DIR; };
+		A87451C62A7DA3D900092602 /* vfu */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vfu; sourceTree = BUILT_PRODUCTS_DIR; };
 		A87451C92A7DA3D900092602 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		A8D7868A2A8051780020C87C /* generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = generated.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -43,7 +43,7 @@
 		A87451BD2A7DA3D900092602 = {
 			isa = PBXGroup;
 			children = (
-				A87451C82A7DA3D900092602 /* swiftvf */,
+				A87451C82A7DA3D900092602 /* vfu */,
 				A87451C72A7DA3D900092602 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -51,26 +51,26 @@
 		A87451C72A7DA3D900092602 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A87451C62A7DA3D900092602 /* swiftvf */,
+				A87451C62A7DA3D900092602 /* vfu */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A87451C82A7DA3D900092602 /* swiftvf */ = {
+		A87451C82A7DA3D900092602 /* vfu */ = {
 			isa = PBXGroup;
 			children = (
 				A87451C92A7DA3D900092602 /* main.swift */,
 				A8D7868A2A8051780020C87C /* generated.swift */,
 			);
-			path = swiftvf;
+			path = vfu;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A87451C52A7DA3D900092602 /* swiftvf */ = {
+		A87451C52A7DA3D900092602 /* vfu */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "swiftvf" */;
+			buildConfigurationList = A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "vfu" */;
 			buildPhases = (
 				A86F87A72A805905007675FA /* ShellScript */,
 				A87451C22A7DA3D900092602 /* Sources */,
@@ -81,9 +81,9 @@
 			);
 			dependencies = (
 			);
-			name = swiftvf;
-			productName = swiftvf;
-			productReference = A87451C62A7DA3D900092602 /* swiftvf */;
+			name = vfu;
+			productName = vfu;
+			productReference = A87451C62A7DA3D900092602 /* vfu */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -101,7 +101,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A87451C12A7DA3D900092602 /* Build configuration list for PBXProject "swiftvf" */;
+			buildConfigurationList = A87451C12A7DA3D900092602 /* Build configuration list for PBXProject "vfu" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -114,7 +114,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A87451C52A7DA3D900092602 /* swiftvf */,
+				A87451C52A7DA3D900092602 /* vfu */,
 			);
 		};
 /* End PBXProject section */
@@ -122,6 +122,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		A86F87A72A805905007675FA /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -289,7 +290,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A87451C12A7DA3D900092602 /* Build configuration list for PBXProject "swiftvf" */ = {
+		A87451C12A7DA3D900092602 /* Build configuration list for PBXProject "vfu" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A87451CB2A7DA3D900092602 /* Debug */,
@@ -298,7 +299,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "swiftvf" */ = {
+		A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "vfu" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A87451CE2A7DA3D900092602 /* Debug */,

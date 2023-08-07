@@ -184,7 +184,7 @@ func readShare(key: String, shares: Dictionary<String, Dictionary<String, String
 }
 
 func usage(message: String) {
-    print("swiftvf:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n")
+    print("vfu:\n  \(configOption) \(configFileTemplate) [REQUIRED]\n    \(verifyOption)\n  \(helpOption)\n  \(versionOption)\n")
     if (message != "") {
         fatalError(message)
     }

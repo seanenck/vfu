@@ -1,8 +1,8 @@
 BIN     := build/
-TARGET  := $(BIN)swiftvf
+TARGET  := $(BIN)vfu
 FLAGS   := -O
-GEN     := swiftvf/generated.swift
-CODE    := swiftvf/main.swift
+GEN     := vfu/generated.swift
+CODE    := vfu/main.swift
 DESTDIR := $(HOME)/.bin/ 
 
 all:	prep $(TARGET) sign
@@ -12,14 +12,14 @@ prep:
 	mkdir -p $(BIN)
 
 $(GEN): $(CODE)
-	cat generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -c 1-7)/g' > $@
+	cat vfu/generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -c 1-7)/g' > $@
 
 $(TARGET): $(GEN) $(CODE)
 	swiftc $(FLAGS) -o $(TARGET) $(CODE) $(GEN)
 
 .PHONY: sign
 sign: $(TARGET)
-	codesign --entitlements swiftvf/swiftvf.entitlements --force -s - $<
+	codesign --entitlements vfu/vfu.entitlements --force -s - $<
 	
 clean:
 	rm -rf $(BIN)
