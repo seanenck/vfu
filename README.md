@@ -25,7 +25,7 @@ While there is quite a bit of divergence, the major changes are really:
 - bridged networking functionality is removed
 - shared directory support (including readonly) via virtio is added
 - one (or more) static MACs can be attached
-- no tty options
+- no tty/pty options, there are serial options (raw, masked, none)
 - use '~/' to refer to a location starting with the user's home
 
 ## Configuration

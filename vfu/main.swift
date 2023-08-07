@@ -9,12 +9,14 @@ let configFileTemplate = "<configuration file>"
 let pathSeparator = "/"
 let resolveHomeIndicator = "~" + pathSeparator
 let minMemory: UInt64 = 128
+let serialMaskedFull = "masked"
 
 struct Configuration: Decodable {
     var kernel: String
     var initrd: String?
     var cpus: Int
     var cmdline: String?
+    var serial: String?
     var memory: UInt64?
     var disks: Array<DiskConfiguration>?
     var networks: Array<NetworkConfiguration>?
@@ -37,15 +39,17 @@ enum VMError: Error {
     case runtimeError(String)
 }
 
-func createConsoleConfiguration() -> VZSerialPortConfiguration {
+func createConsoleConfiguration(masked: Bool) -> VZSerialPortConfiguration {
     let consoleConfiguration = VZVirtioConsoleDeviceSerialPortConfiguration()
     let inputFileHandle = FileHandle.standardInput
     let outputFileHandle = FileHandle.standardOutput
-    var attributes = termios()
-    tcgetattr(inputFileHandle.fileDescriptor, &attributes)
-    attributes.c_iflag &= ~tcflag_t(ICRNL)
-    attributes.c_lflag &= ~tcflag_t(ICANON | ECHO)
-    tcsetattr(inputFileHandle.fileDescriptor, TCSANOW, &attributes)
+    if (masked) {
+        var attributes = termios()
+        tcgetattr(inputFileHandle.fileDescriptor, &attributes)
+        attributes.c_iflag &= ~tcflag_t(ICRNL)
+        attributes.c_lflag &= ~tcflag_t(ICANON | ECHO)
+        tcsetattr(inputFileHandle.fileDescriptor, TCSANOW, &attributes)
+    }
     let stdioAttachment = VZFileHandleSerialPortAttachment(fileHandleForReading: inputFileHandle,
                                                            fileHandleForWriting: outputFileHandle)
     consoleConfiguration.attachment = stdioAttachment
@@ -87,7 +91,24 @@ func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachine
     }
     config.memorySize = (cfg.memory ?? minMemory) * 1024*1024
     if (!verifying) {
-        config.serialPorts = [createConsoleConfiguration()]
+        let serialMode = (cfg.serial ?? serialMaskedFull)
+        var masked = true
+        var attach = true
+        switch (serialMode) {
+            case "none":
+                attach = false
+                break
+            case serialMaskedFull:
+                print("NOTICE: serial console masking is on, this may interfere with normal stdin/stdout")
+            case "raw":
+                print("attaching raw serial console")
+                masked = false
+            default:
+                throw VMError.runtimeError("unknown serial mode: \(serialMode)")
+        }
+        if (attach) {
+            config.serialPorts = [createConsoleConfiguration(masked: masked)]
+        }
     }
 
     var networkConfigs = Array<VZVirtioNetworkDeviceConfiguration>()
