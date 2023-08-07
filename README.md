@@ -4,10 +4,10 @@ vfu
 `vfu` is a swift re-implementation of `vftool` (in swift!) with a set of changes that
 make it a bit different to run. The baseline functionality of [vftool](https://github.com/evansm7/vftool)
 remains the basis for the current state at this time. The main goal is to take
-what `vftool` is and provide the ability to run/configure simple Linux-based
-VMs.
+what `vftool` is and provide the ability to run/configure simple Linux-based VMs
+via JSON definitions.
 
-[![build](https://github.com/enckse/vfu/actions/workflows/build.yml/badge.svg)](https://github.com/enckse/vftool/actions/workflows/build.yml)
+[![build](https://github.com/enckse/vfu/actions/workflows/build.yml/badge.svg)](https://github.com/enckse/vfu/actions/workflows/build.yml)
 
 ## Build
 
