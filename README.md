@@ -27,6 +27,7 @@ While there is quite a bit of divergence, the major changes are really:
 - one (or more) static MACs can be attached
 - no tty/pty options, there are serial options (raw, masked, none)
 - use '~/' to refer to a location starting with the user's home
+- use `VFU_DEBUG=1 vfu <args>` to enable debugging outputs
 
 ## Configuration
 
