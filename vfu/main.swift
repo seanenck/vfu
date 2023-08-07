@@ -197,7 +197,7 @@ func run() {
         }
         switch (argument) {
         case configOption:
-            if (jsonConfig != "") {
+            if (jsonConfig != "" || inConfig) {
                 usage(message: "\(configOption) already specified")
             }
             inConfig = true
