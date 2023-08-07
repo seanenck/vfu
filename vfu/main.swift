@@ -67,7 +67,7 @@ func resolveUserHome(path: String) -> URL {
     }
 }
 
-func  getVMConfig(cfg: Configuration) throws -> VZVirtualMachineConfiguration {
+func getVMConfig(cfg: Configuration, verifying: Bool) throws -> VZVirtualMachineConfiguration {
     let kernelURL = resolveUserHome(path: cfg.kernel)
     let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
     let cmdline = (cfg.cmdline ?? "console=hvc0")
@@ -86,7 +86,9 @@ func  getVMConfig(cfg: Configuration) throws -> VZVirtualMachineConfiguration {
         throw VMError.runtimeError("not enough memory for VM")
     }
     config.memorySize = (cfg.memory ?? minMemory) * 1024*1024
-    config.serialPorts = [createConsoleConfiguration()]
+    if (!verifying) {
+        config.serialPorts = [createConsoleConfiguration()]
+    }
 
     var networkConfigs = Array<VZVirtioNetworkDeviceConfiguration>()
     var networkAttachments = Set<String>()
@@ -233,7 +235,7 @@ func run() {
         fatalError("cpu count must be > 0")
     }
     do {
-        let config = try getVMConfig(cfg: object)
+        let config = try getVMConfig(cfg: object, verifying: verifyMode)
         try config.validate()
         if (verifyMode) {
             return
