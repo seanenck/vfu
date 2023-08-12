@@ -9,7 +9,7 @@ let verboseOption = "--verbose"
 let pathSeparator = "/"
 let resolveHomeIndicator = "~" + pathSeparator
 let minMemory: UInt64 = 128
-let serialMaskedFull = "masked"
+let serialFull = "full"
 let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, verboseOption]
 
 struct Configuration: Decodable {
@@ -71,11 +71,11 @@ enum VMError: Error {
     case runtimeError(String)
 }
 
-func createConsoleConfiguration(masked: Bool) -> VZSerialPortConfiguration {
+func createConsoleConfiguration(full: Bool) -> VZSerialPortConfiguration {
     let consoleConfiguration = VZVirtioConsoleDeviceSerialPortConfiguration()
     let inputFileHandle = FileHandle.standardInput
     let outputFileHandle = FileHandle.standardOutput
-    if (masked) {
+    if (full) {
         var attributes = termios()
         tcgetattr(inputFileHandle.fileDescriptor, &attributes)
         attributes.c_iflag &= ~tcflag_t(ICRNL)
@@ -122,23 +122,23 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
     }
     config.memorySize = (cfg.memory ?? minMemory) * 1024*1024
     if (!args.verify) {
-        let serialMode = (cfg.serial ?? serialMaskedFull)
-        var masked = true
+        let serialMode = (cfg.serial ?? serialFull)
+        var full = true
         var attach = true
         switch (serialMode) {
             case "none":
                 attach = false
                 break
-            case serialMaskedFull:
-                args.log(message: "NOTICE: serial console masking is on, this may interfere with normal stdin/stdout")
+            case serialFull:
+                args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
             case "raw":
                 args.log(message: "attaching raw serial console")
-                masked = false
+                full = false
             default:
                 throw VMError.runtimeError("unknown serial mode: \(serialMode)")
         }
         if (attach) {
-            config.serialPorts = [createConsoleConfiguration(masked: masked)]
+            config.serialPorts = [createConsoleConfiguration(full: full)]
         }
     }
 
