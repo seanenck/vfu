@@ -12,15 +12,25 @@ let serialFull = "full"
 let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, verboseOption]
 
 struct Configuration: Decodable {
-    var kernel: String
-    var initrd: String?
+    var boot: BootConfiguration
     var cpus: Int
-    var cmdline: String?
     var serial: String?
     var memory: UInt64?
     var disks: Array<DiskConfiguration>?
     var networks: Array<NetworkConfiguration>?
     var shares: Dictionary<String, ShareConfiguration>?
+}
+struct BootConfiguration: Decodable {
+    var linux: LinuxBootConfiguration?
+    var efi: EFIBootConfiguration?
+}
+struct LinuxBootConfiguration: Decodable {
+    var kernel: String
+    var initrd: String?
+    var cmdline: String?
+}
+struct EFIBootConfiguration: Decodable {
+    var store: String
 }
 struct DiskConfiguration: Decodable {
     var path: String
@@ -103,17 +113,46 @@ func resolveUserHome(path: String) -> URL {
 }
 
 func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
-    let kernelURL = resolveUserHome(path: cfg.kernel)
-    let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
-    let cmdline = (cfg.cmdline ?? "console=hvc0")
-    let initrd = (cfg.initrd ?? "")
-    bootLoader.commandLine = cmdline
-    if (initrd != "") {
-        bootLoader.initialRamdiskURL = resolveUserHome(path: initrd)
+    let boot = cfg.boot
+    if (boot.linux == nil && boot.efi == nil) {
+        throw VMError.runtimeError("linux OR efi boot must be set")
     }
-    args.log(message: "configuring - kernel: \(cfg.kernel), initrd: \(initrd), cmdline: \(cmdline)")
+    if (boot.linux != nil && boot.efi != nil) {
+        throw VMError.runtimeError("linux AND efi boot can NOT be set")
+    }
     let config = VZVirtualMachineConfiguration()
-    config.bootLoader = bootLoader
+    if (boot.linux != nil) {
+        let opts = cfg.boot.linux!
+        if (opts.kernel == "") {
+            throw VMError.runtimeError("kernel path is not set")
+        }
+
+        let kernelURL = resolveUserHome(path: opts.kernel)
+        let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
+        let cmdline = (opts.cmdline ?? "console=hvc0")
+        let initrd = (opts.initrd ?? "")
+        bootLoader.commandLine = cmdline
+        if (initrd != "") {
+            bootLoader.initialRamdiskURL = resolveUserHome(path: initrd)
+        }
+        args.log(message: "configuring - kernel: \(opts.kernel), initrd: \(initrd), cmdline: \(cmdline)")
+        config.bootLoader = bootLoader
+    } else {
+        let opts = cfg.boot.efi!
+        let efi = opts.store
+        if (efi == "") {
+            throw VMError.runtimeError("efi store not set")
+        }
+        let creating = !FileManager.default.fileExists(atPath: efi)
+        let loader = VZEFIBootLoader()
+        let resolved = resolveUserHome(path: efi)
+        if (creating) {
+            loader.variableStore = try VZEFIVariableStore(creatingVariableStoreAt: resolved, options: [])
+        } else {
+            loader.variableStore = VZEFIVariableStore(url: resolved)
+        }
+        config.bootLoader = loader
+    }
     config.cpuCount = cfg.cpus
     let memory = (cfg.memory ?? minMemory)
     if (memory < minMemory) {
@@ -316,9 +355,6 @@ func run() {
     }
     let runArgs = args!
     let object = runArgs.readJSON()
-    if (object.kernel == "") {
-        fatalError("kernel path is not set")
-    }
     if (object.cpus <= 0) {
         fatalError("cpu count must be > 0")
     }

@@ -1,6 +1,10 @@
 {
-  "kernel": "vmlinuz-lts",
-  "initrd": "initramfs-lts",
+  "boot": {
+    "linux": {
+      "kernel": "vmlinuz-lts",
+      "initrd": "initramfs-lts"
+    }
+  },
   "cpus": 2,
   "memory": 8192, 
   "disks": [

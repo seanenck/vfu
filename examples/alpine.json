@@ -1,5 +1,9 @@
 {
-  "kernel": "vmlinuz-lts",
+  "boot": {
+    "efi": {
+      "store": "build/efi_vars.fd"
+    }
+  },
   "cpus": 2,
   "memory": 8192, 
   "cmdline": "myargs",
