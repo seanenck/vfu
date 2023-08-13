@@ -392,7 +392,7 @@ private func run() {
         if (runArgs.verify) {
             return
         }
-        let queue = DispatchQueue(label: "secondary queue")
+        let queue = DispatchQueue(label: "vfu queue")
         let vm = VZVirtualMachine(configuration: config, queue: queue)
         queue.sync{
             if (!vm.canStart) {
