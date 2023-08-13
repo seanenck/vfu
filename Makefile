@@ -8,12 +8,13 @@ CLICODE := vfu/main.swift $(COMMON)
 GUICODE := vfu/AppDelegate.swift $(COMMON)
 DESTDIR := $(HOME)/.bin/ 
 EXAMPLE := examples/*.json
+SIGN    := codesign --entitlements vfu/vfu.entitlements --force -s -
 
 .PHONY: $(EXAMPLE)
 
 all: build
 
-build: prep $(CLI) $(GUI) sign
+build: prep $(CLI) $(GUI)
 
 prep:
 	mkdir -p $(BIN)
@@ -23,12 +24,11 @@ $(GEN): $(CLICODE) $(GUICODE)
 
 $(CLI): $(GEN) $(CLICODE)
 	$(COMPILE) $(CLICODE) -o $@ 
+	$(SIGN) $@
 
 $(GUI): $(GEN) $(GUICODE)
 	$(COMPILE) $(GUICODE) -o $@ 
-
-sign: $(CLI) $(GUI)
-	codesign --entitlements vfu/vfu.entitlements --force -s - $<
+	$(SIGN) $@
 	
 clean:
 	rm -rf $(BIN)
