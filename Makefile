@@ -8,7 +8,7 @@ EXAMPLE := examples/*.json
 
 .PHONY: $(EXAMPLE)
 
-all:	prep $(TARGET) sign
+all: $(TARGET) sign
 
 prep:
 	mkdir -p $(BIN)
@@ -16,7 +16,7 @@ prep:
 $(GEN): $(CODE)
 	cat vfu/generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -c 1-7)/g' > $@
 
-$(TARGET): $(GEN) $(CODE)
+$(TARGET): prep $(GEN) $(CODE)
 	swiftc $(FLAGS) -o $(TARGET) $(CODE) $(GEN)
 
 sign: $(TARGET)
