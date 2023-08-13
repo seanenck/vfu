@@ -203,29 +203,34 @@ struct VM {
             throw VMError.runtimeError("not enough memory for VM")
         }
         config.memorySize = memory * 1024*1024
-        if (args.graphical) {
+        let graphical = args.graphical || args.verify
+        if (graphical) {
             config.keyboards = [VZUSBKeyboardConfiguration()]
             config.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
             config.graphicsDevices = [createGraphicsDeviceConfiguration()]
-        } else {
-            if (!args.verify) {
-                let serialMode = (cfg.serial ?? serialFull)
-                var full = true
-                var attach = true
-                switch (serialMode) {
-                    case "none":
-                        attach = false
-                    case serialFull:
-                        args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
-                    case "raw":
-                        args.log(message: "attaching raw serial console")
-                        full = false
-                    default:
-                        throw VMError.runtimeError("unknown serial mode: \(serialMode)")
-                }
-                if (attach) {
-                    config.serialPorts = [createConsoleConfiguration(full: full)]
-                }
+        }
+
+        var useSerial = true
+        if (args.verify || args.graphical) {
+            useSerial = false
+        }
+        if (useSerial) {
+            let serialMode = (cfg.serial ?? serialFull)
+            var full = true
+            var attach = true
+            switch (serialMode) {
+                case "none":
+                    attach = false
+                case serialFull:
+                    args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
+                case "raw":
+                    args.log(message: "attaching raw serial console")
+                    full = false
+                default:
+                    throw VMError.runtimeError("unknown serial mode: \(serialMode)")
+            }
+            if (attach) {
+                config.serialPorts = [createConsoleConfiguration(full: full)]
             }
         }
 
