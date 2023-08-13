@@ -35,5 +35,5 @@ expectations
 1. Download the arm64 (aarch64) standard iso for alpine
 2. Extract the vmlinuz-lts and initramfs-lts from the iso (and gzip decompress them)
 3. Run the following (assuming `vfu` has already been built and is PATH and all the specified files are in the current directory)...
-4. Create the JSON configuration file (see example.json as a starting place)
+4. Create the JSON configuration file (see `examples/` as a starting place)
 5. Run `vfu --config <file>.json`

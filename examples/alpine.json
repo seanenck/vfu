@@ -1,0 +1,16 @@
+{
+  "kernel": "vmlinuz-lts",
+  "cpus": 2,
+  "memory": 8192, 
+  "cmdline": "myargs",
+  "serial": "none",
+  "disks": [
+    { 
+      "path": "build/apkovl.img"
+    },
+    { 
+      "path": "build/data.img",
+      "readonly": false
+    }
+  ]
+}

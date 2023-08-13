@@ -4,10 +4,12 @@ FLAGS   := -O
 GEN     := vfu/generated.swift
 CODE    := vfu/main.swift
 DESTDIR := $(HOME)/.bin/ 
+EXAMPLE := examples/*.json
+
+.PHONY: $(EXAMPLE)
 
 all:	prep $(TARGET) sign
 
-.PHONY: prep
 prep:
 	mkdir -p $(BIN)
 
@@ -17,7 +19,6 @@ $(GEN): $(CODE)
 $(TARGET): $(GEN) $(CODE)
 	swiftc $(FLAGS) -o $(TARGET) $(CODE) $(GEN)
 
-.PHONY: sign
 sign: $(TARGET)
 	codesign --entitlements vfu/vfu.entitlements --force -s - $<
 	
@@ -25,11 +26,14 @@ clean:
 	rm -rf $(BIN)
 	rm -f $(GEN)
 
-check: sign 
-	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
-	$(TARGET) --config example.json --verify
+check: sign $(EXAMPLE)
 	$(TARGET) --version
 	$(TARGET) --help
+
+$(EXAMPLE):
+	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
+	$(TARGET) --config $@ --verify
+
 
 install:
 	install -m755 $(TARGET) $(DESTDIR)
