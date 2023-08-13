@@ -6,8 +6,7 @@ let helpOption = "--help"
 let verifyOption = "--verify"
 let versionOption = "--version"
 let verboseOption = "--verbose"
-let pathSeparator = "/"
-let resolveHomeIndicator = "~" + pathSeparator
+let resolveHomeIndicator = "~/"
 let minMemory: UInt64 = 128
 let serialFull = "full"
 let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, verboseOption]
@@ -92,14 +91,13 @@ func resolveUserHome(path: String) -> URL {
     if (!path.hasPrefix(resolveHomeIndicator)) {
         return URL(fileURLWithPath: path)
     }
-    let homeDirURL = FileManager.default.homeDirectoryForCurrentUser
+    var homeDirURL = FileManager.default.homeDirectoryForCurrentUser
     if (path == resolveHomeIndicator) {
         return homeDirURL
     } else {
-        var components = homeDirURL.pathComponents
-        components.append(String(path.dropFirst(resolveHomeIndicator.count)))
-        let pathing = components.joined(separator: pathSeparator)
-        return URL(fileURLWithPath: pathing)
+        let sub = path.dropFirst(resolveHomeIndicator.count)
+        homeDirURL.append(path: String(sub))
+        return homeDirURL
     }
 }
 
