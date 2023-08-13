@@ -1,9 +1,11 @@
 BIN     := build/
 CLI     := $(BIN)vfu
+GUI     := $(BIN)vfu-gui
 GEN     := vfu/generated.swift
 COMPILE := swiftc -O $(GEN)
 COMMON  := vfu/vm.swift
 CLICODE := vfu/main.swift $(COMMON)
+GUICODE := vfu/AppDelegate.swift $(COMMON)
 DESTDIR := $(HOME)/.bin/ 
 EXAMPLE := examples/*.json
 
@@ -11,18 +13,21 @@ EXAMPLE := examples/*.json
 
 all: build
 
-build: prep $(CLI) sign
+build: prep $(CLI) $(GUI) sign
 
 prep:
 	mkdir -p $(BIN)
 
-$(GEN): $(CLICODE)
+$(GEN): $(CLICODE) $(GUICODE)
 	cat vfu/generated.template | sed 's/{HASH}/$(shell shasum $(CLICODE) | shasum | cut -c 1-7)/g' > $@
 
 $(CLI): $(GEN) $(CLICODE)
 	$(COMPILE) $(CLICODE) -o $@ 
 
-sign: $(CLI)
+$(GUI): $(GEN) $(GUICODE)
+	$(COMPILE) $(GUICODE) -o $@ 
+
+sign: $(CLI) $(GUI)
 	codesign --entitlements vfu/vfu.entitlements --force -s - $<
 	
 clean:

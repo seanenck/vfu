@@ -1,16 +1,6 @@
 import Foundation
 import Virtualization
 
-let configOption = "--config"
-let helpOption = "--help"
-let verifyOption = "--verify"
-let versionOption = "--version"
-let verboseOption = "--verbose"
-let resolveHomeIndicator = "~/"
-let minMemory: UInt64 = 128
-let serialFull = "full"
-let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, verboseOption]
-
 struct Configuration: Decodable {
     var boot: BootConfiguration
     var resources: ResourceConfiguration
@@ -54,6 +44,7 @@ struct Arguments {
     var verbose: Bool
     var verify: Bool
     var config: String
+    var graphical: Bool
 
     func readJSON() -> Configuration {
         do {
@@ -86,6 +77,27 @@ enum VMError: Error {
 }
 
 struct VM {
+    let configOption = "--config"
+    let helpOption = "--help"
+    let verifyOption = "--verify"
+    let versionOption = "--version"
+    let verboseOption = "--verbose"
+    let resolveHomeIndicator = "~/"
+    let minMemory: UInt64 = 128
+    let serialFull = "full"
+
+    private func flags() -> Array<String> {
+        return [configOption, verifyOption, helpOption, versionOption, verboseOption]
+    }
+
+    private func createGraphicsDeviceConfiguration() -> VZVirtioGraphicsDeviceConfiguration {
+        let graphicsDevice = VZVirtioGraphicsDeviceConfiguration()
+        graphicsDevice.scanouts = [
+            VZVirtioGraphicsScanoutConfiguration(widthInPixels: 1280, heightInPixels: 720)
+        ]
+
+        return graphicsDevice
+    }
 
     private func createConsoleConfiguration(full: Bool) -> VZSerialPortConfiguration {
         let consoleConfiguration = VZVirtioConsoleDeviceSerialPortConfiguration()
@@ -191,23 +203,29 @@ struct VM {
             throw VMError.runtimeError("not enough memory for VM")
         }
         config.memorySize = memory * 1024*1024
-        if (!args.verify) {
-            let serialMode = (cfg.serial ?? serialFull)
-            var full = true
-            var attach = true
-            switch (serialMode) {
-                case "none":
-                    attach = false
-                case serialFull:
-                    args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
-                case "raw":
-                    args.log(message: "attaching raw serial console")
-                    full = false
-                default:
-                    throw VMError.runtimeError("unknown serial mode: \(serialMode)")
-            }
-            if (attach) {
-                config.serialPorts = [createConsoleConfiguration(full: full)]
+        if (args.graphical) {
+            config.keyboards = [VZUSBKeyboardConfiguration()]
+            config.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
+            config.graphicsDevices = [createGraphicsDeviceConfiguration()]
+        } else {
+            if (!args.verify) {
+                let serialMode = (cfg.serial ?? serialFull)
+                var full = true
+                var attach = true
+                switch (serialMode) {
+                    case "none":
+                        attach = false
+                    case serialFull:
+                        args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
+                    case "raw":
+                        args.log(message: "attaching raw serial console")
+                        full = false
+                    default:
+                        throw VMError.runtimeError("unknown serial mode: \(serialMode)")
+                }
+                if (attach) {
+                    config.serialPorts = [createConsoleConfiguration(full: full)]
+                }
             }
         }
 
@@ -293,7 +311,7 @@ struct VM {
 
     private func usage(message: String) {
         print("vfu:")
-        for flag in commandLineFlags {
+        for flag in flags() {
             var indent = ""
             var extra = ""
             switch (flag) {
@@ -337,7 +355,7 @@ struct VM {
         var isVerbose = false
         let arguments = CommandLine.arguments.count - 1
         var matched = 0
-        for flag in commandLineFlags {
+        for flag in flags() {
             var pos = 0
             var found = false
             for arg in CommandLine.arguments {
@@ -375,7 +393,7 @@ struct VM {
         if (matched != arguments) {
             usage(message: "unknown flags given")
         }
-        return Arguments(verbose: isVerbose, verify: verifyMode, config: jsonConfig)
+        return Arguments(verbose: isVerbose, verify: verifyMode, config: jsonConfig, graphical: false)
     }
 
     func createConfiguration(args: Arguments) -> VZVirtualMachineConfiguration? {

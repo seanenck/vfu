@@ -7,30 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A87451CA2A7DA3D900092602 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A87451C92A7DA3D900092602 /* main.swift */; };
-		A8D7868B2A8051780020C87C /* generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8D7868A2A8051780020C87C /* generated.swift */; };
+		A8F052DD2A8985BA005A8721 /* generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F052DB2A8985BA005A8721 /* generated.swift */; };
+		A8F052DE2A8985BA005A8721 /* vm.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F052DC2A8985BA005A8721 /* vm.swift */; };
+		A8F933F02A8981A30097F557 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F933EF2A8981A30097F557 /* AppDelegate.swift */; };
+		A8F933F22A8981A30097F557 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8F933F12A8981A30097F557 /* Assets.xcassets */; };
+		A8F933F52A8981A30097F557 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A8F933F32A8981A30097F557 /* MainMenu.xib */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		A87451C42A7DA3D900092602 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		A87451C62A7DA3D900092602 /* vfu */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vfu; sourceTree = BUILT_PRODUCTS_DIR; };
-		A87451C92A7DA3D900092602 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		A8D7868A2A8051780020C87C /* generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = generated.swift; sourceTree = "<group>"; };
+		A8F052DB2A8985BA005A8721 /* generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generated.swift; sourceTree = "<group>"; };
+		A8F052DC2A8985BA005A8721 /* vm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = vm.swift; sourceTree = "<group>"; };
+		A8F933EC2A8981A30097F557 /* vfu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vfu.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A8F933EF2A8981A30097F557 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A8F933F12A8981A30097F557 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A8F933F42A8981A30097F557 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		A8F933F62A8981A30097F557 /* vfu.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = vfu.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A87451C32A7DA3D900092602 /* Frameworks */ = {
+		A8F933E92A8981A30097F557 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -40,27 +35,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A87451BD2A7DA3D900092602 = {
+		A8F933E32A8981A30097F557 = {
 			isa = PBXGroup;
 			children = (
-				A87451C82A7DA3D900092602 /* vfu */,
-				A87451C72A7DA3D900092602 /* Products */,
+				A8F933EE2A8981A30097F557 /* vfu */,
+				A8F933ED2A8981A30097F557 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A87451C72A7DA3D900092602 /* Products */ = {
+		A8F933ED2A8981A30097F557 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A87451C62A7DA3D900092602 /* vfu */,
+				A8F933EC2A8981A30097F557 /* vfu.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A87451C82A7DA3D900092602 /* vfu */ = {
+		A8F933EE2A8981A30097F557 /* vfu */ = {
 			isa = PBXGroup;
 			children = (
-				A87451C92A7DA3D900092602 /* main.swift */,
-				A8D7868A2A8051780020C87C /* generated.swift */,
+				A8F052DB2A8985BA005A8721 /* generated.swift */,
+				A8F052DC2A8985BA005A8721 /* vm.swift */,
+				A8F933EF2A8981A30097F557 /* AppDelegate.swift */,
+				A8F933F12A8981A30097F557 /* Assets.xcassets */,
+				A8F933F32A8981A30097F557 /* MainMenu.xib */,
+				A8F933F62A8981A30097F557 /* vfu.entitlements */,
 			);
 			path = vfu;
 			sourceTree = "<group>";
@@ -68,14 +67,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A87451C52A7DA3D900092602 /* vfu */ = {
+		A8F933EB2A8981A30097F557 /* vfu */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "vfu" */;
+			buildConfigurationList = A8F933F92A8981A30097F557 /* Build configuration list for PBXNativeTarget "vfu" */;
 			buildPhases = (
-				A86F87A72A805905007675FA /* ShellScript */,
-				A87451C22A7DA3D900092602 /* Sources */,
-				A87451C32A7DA3D900092602 /* Frameworks */,
-				A87451C42A7DA3D900092602 /* CopyFiles */,
+				A8F933E82A8981A30097F557 /* Sources */,
+				A8F933E92A8981A30097F557 /* Frameworks */,
+				A8F933EA2A8981A30097F557 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -83,25 +81,25 @@
 			);
 			name = vfu;
 			productName = vfu;
-			productReference = A87451C62A7DA3D900092602 /* vfu */;
-			productType = "com.apple.product-type.tool";
+			productReference = A8F933EC2A8981A30097F557 /* vfu.app */;
+			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		A87451BE2A7DA3D900092602 /* Project object */ = {
+		A8F933E42A8981A30097F557 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					A87451C52A7DA3D900092602 = {
+					A8F933EB2A8981A30097F557 = {
 						CreatedOnToolsVersion = 14.3.1;
 					};
 				};
 			};
-			buildConfigurationList = A87451C12A7DA3D900092602 /* Build configuration list for PBXProject "vfu" */;
+			buildConfigurationList = A8F933E72A8981A30097F557 /* Build configuration list for PBXProject "vfu" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -109,52 +107,54 @@
 				en,
 				Base,
 			);
-			mainGroup = A87451BD2A7DA3D900092602;
-			productRefGroup = A87451C72A7DA3D900092602 /* Products */;
+			mainGroup = A8F933E32A8981A30097F557;
+			productRefGroup = A8F933ED2A8981A30097F557 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A87451C52A7DA3D900092602 /* vfu */,
+				A8F933EB2A8981A30097F557 /* vfu */,
 			);
 		};
 /* End PBXProject section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		A86F87A72A805905007675FA /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
+/* Begin PBXResourcesBuildPhase section */
+		A8F933EA2A8981A30097F557 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
+				A8F933F22A8981A30097F557 /* Assets.xcassets in Resources */,
+				A8F933F52A8981A30097F557 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "make
-";
 		};
-/* End PBXShellScriptBuildPhase section */
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A87451C22A7DA3D900092602 /* Sources */ = {
+		A8F933E82A8981A30097F557 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A87451CA2A7DA3D900092602 /* main.swift in Sources */,
-				A8D7868B2A8051780020C87C /* generated.swift in Sources */,
+				A8F933F02A8981A30097F557 /* AppDelegate.swift in Sources */,
+				A8F052DE2A8985BA005A8721 /* vm.swift in Sources */,
+				A8F052DD2A8985BA005A8721 /* generated.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXVariantGroup section */
+		A8F933F32A8981A30097F557 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A8F933F42A8981A30097F557 /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
-		A87451CB2A7DA3D900092602 /* Debug */ = {
+		A8F933F72A8981A30097F557 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -214,7 +214,7 @@
 			};
 			name = Debug;
 		};
-		A87451CC2A7DA3D900092602 /* Release */ = {
+		A8F933F82A8981A30097F557 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -267,22 +267,54 @@
 			};
 			name = Release;
 		};
-		A87451CE2A7DA3D900092602 /* Debug */ = {
+		A8F933FA2A8981A30097F557 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = vfu/vfu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainNibFile = MainMenu;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voidedtech.vfu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		A87451CF2A7DA3D900092602 /* Release */ = {
+		A8F933FB2A8981A30097F557 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = vfu/vfu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainNibFile = MainMenu;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.voidedtech.vfu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -290,25 +322,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A87451C12A7DA3D900092602 /* Build configuration list for PBXProject "vfu" */ = {
+		A8F933E72A8981A30097F557 /* Build configuration list for PBXProject "vfu" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A87451CB2A7DA3D900092602 /* Debug */,
-				A87451CC2A7DA3D900092602 /* Release */,
+				A8F933F72A8981A30097F557 /* Debug */,
+				A8F933F82A8981A30097F557 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A87451CD2A7DA3D900092602 /* Build configuration list for PBXNativeTarget "vfu" */ = {
+		A8F933F92A8981A30097F557 /* Build configuration list for PBXNativeTarget "vfu" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A87451CE2A7DA3D900092602 /* Debug */,
-				A87451CF2A7DA3D900092602 /* Release */,
+				A8F933FA2A8981A30097F557 /* Debug */,
+				A8F933FB2A8981A30097F557 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = A87451BE2A7DA3D900092602 /* Project object */;
+	rootObject = A8F933E42A8981A30097F557 /* Project object */;
 }
