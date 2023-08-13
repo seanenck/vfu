@@ -42,5 +42,10 @@ $(EXAMPLE):
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(CLI) --config $@ --verify
 
+bundle: $(GUICODE) $(GEN)
+	xcodebuild archive -archivePath "$(BIN)vfu.app" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
+	xcodebuild
+
 install:
 	install -m755 $(CLI) $(DESTDIR)
+	cp -r $(BIN)/Release/vfu.app /Applications

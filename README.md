@@ -37,3 +37,10 @@ expectations
 3. Run the following (assuming `vfu` has already been built and is PATH and all the specified files are in the current directory)...
 4. Create the JSON configuration file (see `examples/` as a starting place)
 5. Run `vfu --config <file>.json`
+
+### GUI
+
+There is a simple GUI variant of the same `vfu` code that can be built and used
+via `make bundle` (and then `make install` or manually copying the output
+release files to `/Applications`). This functionality allows for attaching
+an actual virtio graphics setup to a VM configuration
