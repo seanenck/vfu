@@ -1,39 +1,41 @@
 BIN     := build/
-TARGET  := $(BIN)vfu
-FLAGS   := -O
+CLI     := $(BIN)vfu
 GEN     := vfu/generated.swift
-CODE    := vfu/main.swift
+COMPILE := swiftc -O $(GEN)
+COMMON  := vfu/vm.swift
+CLICODE := vfu/main.swift $(COMMON)
 DESTDIR := $(HOME)/.bin/ 
 EXAMPLE := examples/*.json
 
 .PHONY: $(EXAMPLE)
 
-all: $(TARGET) sign
+all: build
+
+build: prep $(CLI) sign
 
 prep:
 	mkdir -p $(BIN)
 
-$(GEN): $(CODE)
-	cat vfu/generated.template | sed 's/{HASH}/$(shell shasum $(CODE) | cut -c 1-7)/g' > $@
+$(GEN): $(CLICODE)
+	cat vfu/generated.template | sed 's/{HASH}/$(shell shasum $(CLICODE) | shasum | cut -c 1-7)/g' > $@
 
-$(TARGET): prep $(GEN) $(CODE)
-	swiftc $(FLAGS) -o $(TARGET) $(CODE) $(GEN)
+$(CLI): $(GEN) $(CLICODE)
+	$(COMPILE) $(CLICODE) -o $@ 
 
-sign: $(TARGET)
+sign: $(CLI)
 	codesign --entitlements vfu/vfu.entitlements --force -s - $<
 	
 clean:
 	rm -rf $(BIN)
 	rm -f $(GEN)
 
-check: sign $(EXAMPLE)
-	$(TARGET) --version
-	$(TARGET) --help
+check: build $(EXAMPLE)
+	$(CLI) --version
+	$(CLI) --help
 
 $(EXAMPLE):
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
-	$(TARGET) --config $@ --verify
-
+	$(CLI) --config $@ --verify
 
 install:
-	install -m755 $(TARGET) $(DESTDIR)
+	install -m755 $(CLI) $(DESTDIR)
