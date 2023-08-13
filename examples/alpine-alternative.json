@@ -6,14 +6,17 @@
   "disks": [
     { 
       "path": "build/alpine-aarch64.iso",
-      "readonly": true 
+      "readonly": true, 
+      "mode": "usb"
     },
     { 
-      "path": "build/apkovl.img"
+      "path": "build/apkovl.img",
+      "mode": "block"
     },
     { 
       "path": "build/data.img",
-      "readonly": false
+      "readonly": false,
+      "mode": "block"
     }
   ],
   "shares": {

@@ -25,6 +25,7 @@ struct Configuration: Decodable {
 struct DiskConfiguration: Decodable {
     var path: String
     var readonly: Bool?
+    var mode: String
 }
 struct NetworkConfiguration: Decodable {
     var mac: String?
@@ -171,7 +172,7 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
     config.networkDevices = networkConfigs
     
     config.entropyDevices = [VZVirtioEntropyDeviceConfiguration()]
-    var allStorage = Array<VZVirtioBlockDeviceConfiguration>()
+    var allStorage = Array<VZStorageDeviceConfiguration>()
     for disk in (cfg.disks ?? Array<DiskConfiguration>()) {
         if (disk.path == "") {
             throw VMError.runtimeError("invalid disk, empty path")
@@ -180,8 +181,16 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
         guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: resolveUserHome(path: disk.path), readOnly: ro) else {
             throw VMError.runtimeError("invalid disk: \(disk.path)")
         }
-        allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
-        args.log(message: "attaching disk: \(disk.path), ro: \(ro)")
+        switch (disk.mode) {
+            case "usb":
+                allStorage.append(VZUSBMassStorageDeviceConfiguration(attachment: diskObject))
+                break
+            case "block":
+                allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
+            default:
+                throw VMError.runtimeError("invalid disk mode")
+        }
+        args.log(message: "attaching disk: \(disk.path), ro: \(ro), mode: \(disk.mode)")
     }
     config.storageDevices = allStorage
 

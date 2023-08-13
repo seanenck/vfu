@@ -6,9 +6,11 @@
   "serial": "none",
   "disks": [
     { 
+      "mode": "block",
       "path": "build/apkovl.img"
     },
     { 
+      "mode": "block",
       "path": "build/data.img",
       "readonly": false
     }
