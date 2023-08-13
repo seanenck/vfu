@@ -84,7 +84,7 @@ enum VMError: Error {
     case runtimeError(String)
 }
 
-func createConsoleConfiguration(full: Bool) -> VZSerialPortConfiguration {
+private func createConsoleConfiguration(full: Bool) -> VZSerialPortConfiguration {
     let consoleConfiguration = VZVirtioConsoleDeviceSerialPortConfiguration()
     let inputFileHandle = FileHandle.standardInput
     let outputFileHandle = FileHandle.standardOutput
@@ -101,7 +101,7 @@ func createConsoleConfiguration(full: Bool) -> VZSerialPortConfiguration {
     return consoleConfiguration
 }
 
-func resolveUserHome(path: String) -> URL {
+private func resolveUserHome(path: String) -> URL {
     if (!path.hasPrefix(resolveHomeIndicator)) {
         return URL(fileURLWithPath: path)
     }
@@ -115,7 +115,7 @@ func resolveUserHome(path: String) -> URL {
     }
 }
 
-func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
+private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
     let boot = cfg.boot
     if (boot.linux == nil && boot.efi == nil) {
         throw VMError.runtimeError("linux OR efi boot must be set")
@@ -169,7 +169,6 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
         switch (serialMode) {
             case "none":
                 attach = false
-                break
             case serialFull:
                 args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
             case "raw":
@@ -226,7 +225,6 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
         switch (disk.mode) {
             case "usb":
                 allStorage.append(VZUSBMassStorageDeviceConfiguration(attachment: diskObject))
-                break
             case "block":
                 allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
             default:
@@ -264,7 +262,7 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
     return config
 }
 
-func usage(message: String) {
+private func usage(message: String) {
     print("vfu:")
     for flag in commandLineFlags {
         var indent = ""
@@ -299,12 +297,12 @@ func usage(message: String) {
     }
 }
 
-func vers() {
+private func vers() {
     let v = version()
     print("version: \(v)")
 }
 
-func parseArguments() -> Arguments? {
+private func parseArguments() -> Arguments? {
     var jsonConfig = ""
     var verifyMode = false
     var isVerbose = false
@@ -351,7 +349,7 @@ func parseArguments() -> Arguments? {
     return Arguments(verbose: isVerbose, verify: verifyMode, config: jsonConfig)
 }
 
-func run() {
+private func run() {
     let args = parseArguments()
     if (args == nil) {
         return
