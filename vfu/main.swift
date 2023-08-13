@@ -14,6 +14,7 @@ let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, v
 struct Configuration: Decodable {
     var boot: BootConfiguration
     var resources: ResourceConfiguration
+    var identifier: String?
     var serial: String?
     var disks: Array<DiskConfiguration>?
     var networks: Array<NetworkConfiguration>?
@@ -115,6 +116,22 @@ private func resolveUserHome(path: String) -> URL {
     }
 }
 
+private func setupMachineIdentifier(path: String) throws -> VZGenericMachineIdentifier? {
+    if (pathExists(path: path)) {
+        let read = try Data(contentsOf: URL(fileURLWithPath: path))
+        let id = VZGenericMachineIdentifier(dataRepresentation: read)
+        return id
+    }
+
+    let machineIdentifier = VZGenericMachineIdentifier()
+    try machineIdentifier.dataRepresentation.write(to: URL(fileURLWithPath: path))
+    return machineIdentifier
+}
+
+private func pathExists(path: String) -> Bool {
+    return FileManager.default.fileExists(atPath: path)
+}
+
 private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
     let boot = cfg.boot
     if (boot.linux == nil && boot.efi == nil) {
@@ -124,6 +141,16 @@ private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtua
         throw VMError.runtimeError("linux AND efi boot can NOT be set")
     }
     let config = VZVirtualMachineConfiguration()
+    let machineIdentifier = (cfg.identifier ?? "")
+    if (machineIdentifier != "") {
+        let platform = VZGenericPlatformConfiguration()
+        let machine = try setupMachineIdentifier(path: machineIdentifier)
+        if (machine == nil) {
+            throw VMError.runtimeError("unable to setup machine identifier")
+        }
+        platform.machineIdentifier = machine!
+        config.platform = platform
+    }
     if (boot.linux != nil) {
         let opts = cfg.boot.linux!
         if (opts.kernel == "") {
@@ -146,7 +173,7 @@ private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtua
         if (efi == "") {
             throw VMError.runtimeError("efi store not set")
         }
-        let creating = !FileManager.default.fileExists(atPath: efi)
+        let creating = !pathExists(path: efi)
         let loader = VZEFIBootLoader()
         let resolved = resolveUserHome(path: efi)
         if (creating) {

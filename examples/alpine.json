@@ -4,6 +4,7 @@
       "store": "build/efi_vars.fd"
     }
   },
+  "identifier": "build/machine_id",
   "resources": {
       "cpus": 1,
       "memory": 256
