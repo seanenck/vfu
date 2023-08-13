@@ -13,12 +13,15 @@ let commandLineFlags = [configOption, verifyOption, helpOption, versionOption, v
 
 struct Configuration: Decodable {
     var boot: BootConfiguration
-    var cpus: Int
+    var resources: ResourceConfiguration
     var serial: String?
-    var memory: UInt64?
     var disks: Array<DiskConfiguration>?
     var networks: Array<NetworkConfiguration>?
     var shares: Dictionary<String, ShareConfiguration>?
+}
+struct ResourceConfiguration: Decodable {
+    var cpus: Int
+    var memory: UInt64?
 }
 struct BootConfiguration: Decodable {
     var linux: LinuxBootConfiguration?
@@ -153,12 +156,12 @@ func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachine
         }
         config.bootLoader = loader
     }
-    config.cpuCount = cfg.cpus
-    let memory = (cfg.memory ?? minMemory)
+    config.cpuCount = cfg.resources.cpus
+    let memory = (cfg.resources.memory ?? minMemory)
     if (memory < minMemory) {
         throw VMError.runtimeError("not enough memory for VM")
     }
-    config.memorySize = (cfg.memory ?? minMemory) * 1024*1024
+    config.memorySize = memory * 1024*1024
     if (!args.verify) {
         let serialMode = (cfg.serial ?? serialFull)
         var full = true
@@ -355,7 +358,7 @@ func run() {
     }
     let runArgs = args!
     let object = runArgs.readJSON()
-    if (object.cpus <= 0) {
+    if (object.resources.cpus <= 0) {
         fatalError("cpu count must be > 0")
     }
     do {

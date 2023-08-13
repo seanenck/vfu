@@ -5,8 +5,10 @@
       "initrd": "initramfs-lts"
     }
   },
-  "cpus": 2,
-  "memory": 8192, 
+  "resources": {
+      "cpus": 2,
+      "memory": 8192
+  },
   "disks": [
     { 
       "path": "build/alpine-aarch64.iso",
