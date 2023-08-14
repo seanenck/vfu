@@ -168,20 +168,21 @@ struct VM {
         return consoleConfiguration
     }
 
-    private func setupMachineIdentifier(path: String) throws -> VZGenericMachineIdentifier? {
-        if (pathExists(path: path)) {
-            let read = try Data(contentsOf: URL(fileURLWithPath: path))
+    private func setupMachineIdentifier(cfg: Configuration, path: String) throws -> VZGenericMachineIdentifier? {
+        let resolved = cfg.resolve(path: path)
+        if (pathExists(path: resolved)) {
+            let read = try Data(contentsOf: resolved)
             let id = VZGenericMachineIdentifier(dataRepresentation: read)
             return id
         }
 
         let machineIdentifier = VZGenericMachineIdentifier()
-        try machineIdentifier.dataRepresentation.write(to: URL(fileURLWithPath: path))
+        try machineIdentifier.dataRepresentation.write(to: resolved)
         return machineIdentifier
     }
 
-    private func pathExists(path: String) -> Bool {
-        return FileManager.default.fileExists(atPath: path)
+    private func pathExists(path: URL) -> Bool {
+        return FileManager.default.fileExists(atPath: path.path)
     }
 
     private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
@@ -196,7 +197,7 @@ struct VM {
         let machineIdentifier = (cfg.identifier ?? "")
         if (machineIdentifier != "") {
             let platform = VZGenericPlatformConfiguration()
-            let machine = try setupMachineIdentifier(path: machineIdentifier)
+            let machine = try setupMachineIdentifier(cfg: cfg, path: machineIdentifier)
             if (machine == nil) {
                 throw VMError.runtimeError("unable to setup machine identifier")
             }
@@ -225,9 +226,9 @@ struct VM {
             if (efi == "") {
                 throw VMError.runtimeError("efi store not set")
             }
-            let creating = !pathExists(path: efi)
-            let loader = VZEFIBootLoader()
             let resolved = cfg.resolve(path: efi)
+            let creating = !pathExists(path: resolved)
+            let loader = VZEFIBootLoader()
             if (creating) {
                 loader.variableStore = try VZEFIVariableStore(creatingVariableStoreAt: resolved, options: [])
             } else {
