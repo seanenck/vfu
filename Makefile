@@ -48,4 +48,4 @@ bundle: $(GUICODE) $(GEN)
 
 install:
 	install -m755 $(CLI) $(DESTDIR)
-	cp -r $(BIN)/Release/vfu.app /Applications
+	cp -r $(BIN)Release/vfu.app /Applications

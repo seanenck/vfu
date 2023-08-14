@@ -71,6 +71,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A8F933F92A8981A30097F557 /* Build configuration list for PBXNativeTarget "vfu" */;
 			buildPhases = (
+				A85229E42A8A41AB004E3020 /* Run Script */,
 				A8F933E82A8981A30097F557 /* Sources */,
 				A8F933E92A8981A30097F557 /* Frameworks */,
 				A8F933EA2A8981A30097F557 /* Resources */,
@@ -128,6 +129,29 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A85229E42A8A41AB004E3020 /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make vfu/generated.swift\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A8F933E82A8981A30097F557 /* Sources */ = {
