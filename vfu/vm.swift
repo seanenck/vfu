@@ -2,6 +2,8 @@ import Foundation
 import Virtualization
 
 struct Configuration: Decodable {
+
+    var env: Dictionary<String, String>?
     var boot: BootConfiguration
     var resources: ResourceConfiguration
     var identifier: String?
@@ -9,6 +11,55 @@ struct Configuration: Decodable {
     var disks: Array<DiskConfiguration>?
     var networks: Array<NetworkConfiguration>?
     var shares: Dictionary<String, ShareConfiguration>?
+
+    private func resolvable() -> Dictionary<String, URL> {
+        let homePath = "~/"
+        var dirs = Dictionary<String, URL>()
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        dirs[homePath] = home
+        let useEnv = (env ?? Dictionary<String, String>())
+        for key in useEnv.keys {
+            let path = useEnv[key]!
+            let resolved = resolvePath(path: path, prefix: homePath, with: FileManager.default.homeDirectoryForCurrentUser) 
+            var useKey = key
+            if (!useKey.hasPrefix("$")) {
+                useKey = "$\(useKey)"
+            }
+            if (!useKey.hasSuffix("/")) {
+                useKey = "\(useKey)/"
+            }
+            if (resolved == nil) {
+                dirs[useKey] = URL(fileURLWithPath: path)
+            } else {
+                dirs[useKey] = resolved!
+            }
+        }
+        return dirs
+    }
+
+    private func resolvePath(path: String, prefix: String, with: URL) -> URL? {
+        if (path.hasPrefix(prefix)) {
+            if (path == prefix) {
+                return with
+            }
+            var to = with
+            let sub = path.dropFirst(prefix.count)
+            to.append(path: String(sub))
+            return to
+        }
+        return nil
+    }
+
+    func resolve(path: String) -> URL {
+        let directories = self.resolvable()
+        for key in directories.keys {
+            let resolved = self.resolvePath(path: path, prefix: key, with: directories[key]!)
+            if (resolved != nil) {
+                return resolved!
+            }
+        }
+        return URL(fileURLWithPath: path)
+    }
 }
 struct ResourceConfiguration: Decodable {
     var cpus: Int
@@ -47,38 +98,6 @@ struct Arguments {
     var verify: Bool
     var config: String
     var graphical: Bool
-    
-    private func resolvable() -> Dictionary<String, URL> {
-        var dirs = Dictionary<String, URL>()
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        dirs["~/"] = home
-        dirs["$HOME/"] = home
-        let path = self.config.split(separator: pathSep)
-        if (path.count > 1) {
-            let pwd = path[0...path.count-2].joined(separator: pathSep)
-            dirs["$PWD/"] = URL(fileURLWithPath: pathSep + pwd)
-        }
-        return dirs
-    }
-    
-    func resolve(path: String) -> URL {
-        let directories = self.resolvable()
-        for key in directories.keys {
-            if (!path.hasPrefix(key)) {
-                continue
-            }
-            var resolveTo = directories[key]!
-            self.log(message: "resolving: \(path) with \(key) -> \(resolveTo)")
-            if (path == key) {
-                return resolveTo
-            }
-            let sub = path.dropFirst(key.count)
-            resolveTo.append(path: String(sub))
-            self.log(message: "resolved to: \(resolveTo)")
-            return resolveTo
-        }
-        return URL(fileURLWithPath: path)
-    }
 
     func readJSON() -> Configuration {
         do {
@@ -190,13 +209,13 @@ struct VM {
                 throw VMError.runtimeError("kernel path is not set")
             }
 
-            let kernelURL = args.resolve(path: opts.kernel)
+            let kernelURL = cfg.resolve(path: opts.kernel)
             let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
             let cmdline = (opts.cmdline ?? "console=hvc0")
             let initrd = (opts.initrd ?? "")
             bootLoader.commandLine = cmdline
             if (initrd != "") {
-                bootLoader.initialRamdiskURL = args.resolve(path: initrd)
+                bootLoader.initialRamdiskURL = cfg.resolve(path: initrd)
             }
             args.log(message: "configuring - kernel: \(opts.kernel), initrd: \(initrd), cmdline: \(cmdline)")
             config.bootLoader = bootLoader
@@ -208,7 +227,7 @@ struct VM {
             }
             let creating = !pathExists(path: efi)
             let loader = VZEFIBootLoader()
-            let resolved = args.resolve(path: efi)
+            let resolved = cfg.resolve(path: efi)
             if (creating) {
                 loader.variableStore = try VZEFIVariableStore(creatingVariableStoreAt: resolved, options: [])
             } else {
@@ -290,7 +309,7 @@ struct VM {
                 throw VMError.runtimeError("invalid disk, empty path")
             }
             let ro = (disk.readonly ?? false)
-            guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: args.resolve(path: disk.path), readOnly: ro) else {
+            guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: cfg.resolve(path: disk.path), readOnly: ro) else {
                 throw VMError.runtimeError("invalid disk: \(disk.path)")
             }
             switch (disk.mode) {
@@ -321,7 +340,7 @@ struct VM {
                     throw VMError.runtimeError("empty share path: \(key)")
                 }
                 let ro = (local.readonly ?? false)
-                let directoryShare = VZSharedDirectory(url:args.resolve(path: local.path), readOnly: ro)
+                let directoryShare = VZSharedDirectory(url: cfg.resolve(path: local.path), readOnly: ro)
                 let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
                 let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
                 shareConfig.share = singleDirectory

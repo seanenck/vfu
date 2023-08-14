@@ -18,8 +18,11 @@
     },
     { 
       "mode": "block",
-      "path": "build/data.img",
+      "path": "$BUILD/data.img",
       "readonly": false
     }
-  ]
+  ],
+  "env": {
+      "BUILD": "build"
+  }
 }

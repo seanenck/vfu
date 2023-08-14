@@ -25,11 +25,18 @@
       "mode": "block"
     }
   ],
+  "env": {
+    "$HOME/": "~/"
+  },
   "shares": {
     "downloads": {
        "path": "/Users"
     },
     "documents": {
+       "path": "$HOME/Documents",
+       "readonly": true 
+    },
+    "other": {
        "path": "~/Documents",
        "readonly": true 
     }
