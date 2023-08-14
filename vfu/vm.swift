@@ -41,10 +41,44 @@ struct ShareConfiguration: Decodable {
 }
 
 struct Arguments {
+    let pathSep = "/"
+
     var verbose: Bool
     var verify: Bool
     var config: String
     var graphical: Bool
+    
+    private func resolvable() -> Dictionary<String, URL> {
+        var dirs = Dictionary<String, URL>()
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        dirs["~/"] = home
+        dirs["$HOME/"] = home
+        let path = self.config.split(separator: pathSep)
+        if (path.count > 1) {
+            let pwd = path[0...path.count-2].joined(separator: pathSep)
+            dirs["$PWD/"] = URL(fileURLWithPath: pathSep + pwd)
+        }
+        return dirs
+    }
+    
+    func resolve(path: String) -> URL {
+        let directories = self.resolvable()
+        for key in directories.keys {
+            if (!path.hasPrefix(key)) {
+                continue
+            }
+            var resolveTo = directories[key]!
+            self.log(message: "resolving: \(path) with \(key) -> \(resolveTo)")
+            if (path == key) {
+                return resolveTo
+            }
+            let sub = path.dropFirst(key.count)
+            resolveTo.append(path: String(sub))
+            self.log(message: "resolved to: \(resolveTo)")
+            return resolveTo
+        }
+        return URL(fileURLWithPath: path)
+    }
 
     func readJSON() -> Configuration {
         do {
@@ -82,7 +116,6 @@ struct VM {
     let verifyOption = "--verify"
     let versionOption = "--version"
     let verboseOption = "--verbose"
-    let resolveHomeIndicator = "~/"
     let minMemory: UInt64 = 128
     let serialFull = "full"
 
@@ -114,20 +147,6 @@ struct VM {
                                                                fileHandleForWriting: outputFileHandle)
         consoleConfiguration.attachment = stdioAttachment
         return consoleConfiguration
-    }
-
-    private func resolveUserHome(path: String) -> URL {
-        if (!path.hasPrefix(resolveHomeIndicator)) {
-            return URL(fileURLWithPath: path)
-        }
-        var homeDirURL = FileManager.default.homeDirectoryForCurrentUser
-        if (path == resolveHomeIndicator) {
-            return homeDirURL
-        } else {
-            let sub = path.dropFirst(resolveHomeIndicator.count)
-            homeDirURL.append(path: String(sub))
-            return homeDirURL
-        }
     }
 
     private func setupMachineIdentifier(path: String) throws -> VZGenericMachineIdentifier? {
@@ -171,13 +190,13 @@ struct VM {
                 throw VMError.runtimeError("kernel path is not set")
             }
 
-            let kernelURL = resolveUserHome(path: opts.kernel)
+            let kernelURL = args.resolve(path: opts.kernel)
             let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
             let cmdline = (opts.cmdline ?? "console=hvc0")
             let initrd = (opts.initrd ?? "")
             bootLoader.commandLine = cmdline
             if (initrd != "") {
-                bootLoader.initialRamdiskURL = resolveUserHome(path: initrd)
+                bootLoader.initialRamdiskURL = args.resolve(path: initrd)
             }
             args.log(message: "configuring - kernel: \(opts.kernel), initrd: \(initrd), cmdline: \(cmdline)")
             config.bootLoader = bootLoader
@@ -189,7 +208,7 @@ struct VM {
             }
             let creating = !pathExists(path: efi)
             let loader = VZEFIBootLoader()
-            let resolved = resolveUserHome(path: efi)
+            let resolved = args.resolve(path: efi)
             if (creating) {
                 loader.variableStore = try VZEFIVariableStore(creatingVariableStoreAt: resolved, options: [])
             } else {
@@ -271,7 +290,7 @@ struct VM {
                 throw VMError.runtimeError("invalid disk, empty path")
             }
             let ro = (disk.readonly ?? false)
-            guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: resolveUserHome(path: disk.path), readOnly: ro) else {
+            guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: args.resolve(path: disk.path), readOnly: ro) else {
                 throw VMError.runtimeError("invalid disk: \(disk.path)")
             }
             switch (disk.mode) {
@@ -302,7 +321,7 @@ struct VM {
                     throw VMError.runtimeError("empty share path: \(key)")
                 }
                 let ro = (local.readonly ?? false)
-                let directoryShare = VZSharedDirectory(url:resolveUserHome(path: local.path), readOnly: ro)
+                let directoryShare = VZSharedDirectory(url:args.resolve(path: local.path), readOnly: ro)
                 let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
                 let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
                 shareConfig.share = singleDirectory
@@ -406,6 +425,7 @@ struct VM {
         if (object.resources.cpus <= 0) {
             fatalError("cpu count must be > 0")
         }
+
         do {
             let config = try getVMConfig(cfg: object, args: args)
             try config.validate()
