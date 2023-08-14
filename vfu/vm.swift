@@ -350,7 +350,7 @@ struct VM {
     }
 
     private func vers() {
-        let v = version()
+        let v = versionHash()
         print("version: \(v)")
     }
 
