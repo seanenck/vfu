@@ -12,7 +12,7 @@ struct Configuration: Decodable {
     var networks: Array<NetworkConfiguration>?
     var shares: Dictionary<String, ShareConfiguration>?
 
-    private func resolvable() -> Dictionary<String, URL> {
+    private func resolvable(args: Arguments) -> Dictionary<String, URL> {
         let homePath = "~/"
         var dirs = Dictionary<String, URL>()
         let home = FileManager.default.homeDirectoryForCurrentUser
@@ -50,13 +50,19 @@ struct Configuration: Decodable {
         return nil
     }
 
-    func resolve(path: String) -> URL {
-        let directories = self.resolvable()
+    func resolve(path: String, args: Arguments) -> URL {
+        let directories = self.resolvable(args: args)
         for key in directories.keys {
             let resolved = self.resolvePath(path: path, prefix: key, with: directories[key]!)
             if (resolved != nil) {
                 return resolved!
             }
+        }
+        let pathSep = args.pathSep.first!
+        if (path.first! != pathSep) {
+            let parts = args.config.split(separator: pathSep)
+            let pwd = parts[0...parts.count-2].joined(separator: args.pathSep)
+            return URL(fileURLWithPath: args.pathSep + pwd + args.pathSep + path)
         }
         return URL(fileURLWithPath: path)
     }
@@ -168,8 +174,8 @@ struct VM {
         return consoleConfiguration
     }
 
-    private func setupMachineIdentifier(cfg: Configuration, path: String) throws -> VZGenericMachineIdentifier? {
-        let resolved = cfg.resolve(path: path)
+    private func setupMachineIdentifier(cfg: Configuration, path: String, args: Arguments) throws -> VZGenericMachineIdentifier? {
+        let resolved = cfg.resolve(path: path, args: args)
         if (pathExists(path: resolved)) {
             let read = try Data(contentsOf: resolved)
             let id = VZGenericMachineIdentifier(dataRepresentation: read)
@@ -197,7 +203,7 @@ struct VM {
         let machineIdentifier = (cfg.identifier ?? "")
         if (machineIdentifier != "") {
             let platform = VZGenericPlatformConfiguration()
-            let machine = try setupMachineIdentifier(cfg: cfg, path: machineIdentifier)
+            let machine = try setupMachineIdentifier(cfg: cfg, path: machineIdentifier, args: args)
             if (machine == nil) {
                 throw VMError.runtimeError("unable to setup machine identifier")
             }
@@ -210,13 +216,13 @@ struct VM {
                 throw VMError.runtimeError("kernel path is not set")
             }
 
-            let kernelURL = cfg.resolve(path: opts.kernel)
+            let kernelURL = cfg.resolve(path: opts.kernel, args: args)
             let bootLoader: VZLinuxBootLoader = VZLinuxBootLoader(kernelURL: kernelURL)
             let cmdline = (opts.cmdline ?? "console=hvc0")
             let initrd = (opts.initrd ?? "")
             bootLoader.commandLine = cmdline
             if (initrd != "") {
-                bootLoader.initialRamdiskURL = cfg.resolve(path: initrd)
+                bootLoader.initialRamdiskURL = cfg.resolve(path: initrd, args: args)
             }
             args.log(message: "configuring - kernel: \(opts.kernel), initrd: \(initrd), cmdline: \(cmdline)")
             config.bootLoader = bootLoader
@@ -226,7 +232,7 @@ struct VM {
             if (efi == "") {
                 throw VMError.runtimeError("efi store not set")
             }
-            let resolved = cfg.resolve(path: efi)
+            let resolved = cfg.resolve(path: efi, args: args)
             let creating = !pathExists(path: resolved)
             let loader = VZEFIBootLoader()
             if (creating) {
@@ -310,7 +316,7 @@ struct VM {
                 throw VMError.runtimeError("invalid disk, empty path")
             }
             let ro = (disk.readonly ?? false)
-            guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: cfg.resolve(path: disk.path), readOnly: ro) else {
+            guard let diskObject = try? VZDiskImageStorageDeviceAttachment(url: cfg.resolve(path: disk.path, args: args), readOnly: ro) else {
                 throw VMError.runtimeError("invalid disk: \(disk.path)")
             }
             switch (disk.mode) {
@@ -341,7 +347,7 @@ struct VM {
                     throw VMError.runtimeError("empty share path: \(key)")
                 }
                 let ro = (local.readonly ?? false)
-                let directoryShare = VZSharedDirectory(url: cfg.resolve(path: local.path), readOnly: ro)
+                let directoryShare = VZSharedDirectory(url: cfg.resolve(path: local.path, args: args), readOnly: ro)
                 let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
                 let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
                 shareConfig.share = singleDirectory
