@@ -58,11 +58,8 @@ struct Configuration: Decodable {
                 return resolved!
             }
         }
-        let pathSep = args.pathSep.first!
-        if (path.first! != pathSep) {
-            let parts = args.config.split(separator: pathSep)
-            let pwd = parts[0...parts.count-2].joined(separator: args.pathSep)
-            return URL(fileURLWithPath: args.pathSep + pwd + args.pathSep + path)
+        if (args.pwd != nil && path.first! != Arguments.pathSep.first!) {
+            return URL(fileURLWithPath: args.pwd! + path)
         }
         return URL(fileURLWithPath: path)
     }
@@ -98,12 +95,13 @@ struct ShareConfiguration: Decodable {
 }
 
 struct Arguments {
-    let pathSep = "/"
+    static let pathSep = "/"
 
     var verbose: Bool
     var verify: Bool
     var config: String
     var graphical: Bool
+    var pwd: String?
 
     func readJSON() -> Configuration {
         do {
@@ -128,6 +126,11 @@ struct Arguments {
         if (self.verbose) {
             print(message)
         }
+    }
+    mutating func setDirectory() {
+        let parts = self.config.split(separator: Arguments.pathSep.first!)
+        let pwd = parts[0...parts.count-2].joined(separator: Arguments.pathSep)
+        self.pwd = Arguments.pathSep + pwd + Arguments.pathSep 
     }
 }
 

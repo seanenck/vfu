@@ -26,7 +26,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
 
         openPanel.begin { (result) -> Void in
             if result == .OK {
-                let args = Arguments(verbose: false, verify: false, config: openPanel.url!.path, graphical: true)
+                var args = Arguments(verbose: false, verify: false, config: openPanel.url!.path, graphical: true)
+                args.setDirectory()
                 DispatchQueue.main.async {
                     let config = VM().createConfiguration(args: args)
                     if (config == nil) {
