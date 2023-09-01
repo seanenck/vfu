@@ -25,11 +25,11 @@ _vm() {
   len=${#words[@]}
   case $state in
     main)
-      _arguments '1:main:(start status stop attach ls http)'
+      _arguments '1:main:(start status)'
     ;;
     *)
       case $words[2] in
-        "status" | "start" | "stop" | "attach")
+        "status" | "start")
           compadd "$@" $(vm ls)
         ;;
       esac
