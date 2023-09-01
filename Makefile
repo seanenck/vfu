@@ -8,7 +8,6 @@ CLICODE := vfu/main.swift $(COMMON)
 GUICODE := vfu/AppDelegate.swift $(COMMON)
 EXAMPLE := examples/*.json
 SIGN    := codesign --entitlements vfu/vfu.entitlements --force -s -
-VMPY    := $(BIN)vm
 DESTDIR := /usr/local/bin
 
 .PHONY: $(EXAMPLE)
@@ -43,11 +42,6 @@ $(EXAMPLE):
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(CLI) --config $@ --verify
 
-contrib: $(VMPY)
-
-$(VMPY): $(CLI)
-	cat contrib/vm.py | sed "s/{{VERSION}}/$(shell $(CLI) --version)/" > $(VMPY)
-
 bundle: $(GUICODE) $(GEN)
 	xcodebuild archive -archivePath "$(BIN)vfu.app" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
 	xcodebuild
@@ -55,5 +49,5 @@ bundle: $(GUICODE) $(GEN)
 install:
 	mkdir -p $(DESTDIR)
 	install -m755 $(CLI) $(DESTDIR)/vfu
-	install -m755 $(VMPY) $(DESTDIR)/vm
+	install -m755 contrib/vm.py $(DESTDIR)/vm
 	cp -r $(BIN)Release/vfu.app /Applications

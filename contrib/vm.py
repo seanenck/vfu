@@ -8,7 +8,6 @@ import json
 import datetime
 import typing
 
-_VERSION = "{{VERSION}}"
 _CONFIGS = os.path.join(str(Path.home()), ".vms")
 _GET_TIME = json.dumps({"execute": "guest-get-time"}).encode("utf-8")
 _TIME_SCREEN = "vm-time"
@@ -26,7 +25,7 @@ _vm() {
   len=${#words[@]}
   case $state in
     main)
-      _arguments '1:main:(start status version)'
+      _arguments '1:main:(start status)'
     ;;
     *)
       case $words[2] in
@@ -142,9 +141,6 @@ def main() -> None:
         return
     elif cmd == "zsh":
         print(_ZSH_COMPLETION.strip())
-        return
-    elif cmd == "version":
-        print(_VERSION)
         return
     if len(args) != 3:
         _usage()
