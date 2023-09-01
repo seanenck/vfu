@@ -6,7 +6,7 @@ COMPILE := swiftc -O $(GEN)
 COMMON  := vfu/vm.swift
 CLICODE := vfu/main.swift $(COMMON)
 GUICODE := vfu/AppDelegate.swift $(COMMON)
-DESTDIR := $(HOME)/.bin/ 
+DESTDIR := $(HOME)/local/.bin/ 
 EXAMPLE := examples/*.json
 SIGN    := codesign --entitlements vfu/vfu.entitlements --force -s -
 
@@ -48,4 +48,5 @@ bundle: $(GUICODE) $(GEN)
 
 install:
 	install -m755 $(CLI) $(DESTDIR)
+	install -m755 contrib/vm.py $(DESTDIR)vm
 	cp -r $(BIN)Release/vfu.app /Applications
