@@ -36,10 +36,31 @@ _vm() {
   esac
 }
 """
+_BASH_COMPLETION = """
+# vm completion
+ 
+_vm() {
+  local cur arg opts last
+  cur=${COMP_WORDS[COMP_CWORD]}
+  if [ "$COMP_CWORD" -eq 1 ]; then
+    opts="start status"
+  else
+    if [ "$COMP_CWORD" -gt 1 ]; then
+      last=${COMP_WORDS[COMP_CWORD-1]}
+      if [ "$last" == "start" ] || [ "$last" == "status" ]; then
+        opts=$(vm ls)
+      fi
+    fi
+  fi
+  COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+}
+
+complete -F _vm -o default -o bashdefault vm
+"""
 
 
 def _status(name: str) -> bool:
-    result = subprocess.run(['screen', '-list'], stdout=subprocess.PIPE)
+    result = subprocess.run(["screen", "-list"], stdout=subprocess.PIPE)
     search = ".{}".format(name)
     for item in result.stdout.decode("utf-8").split("\n"):
         if search in item.strip():
@@ -71,9 +92,9 @@ def _time() -> None:
             nc = ["nc", "-G", "1", ip, "9999"]
             update = True
             try:
-                res = subprocess.Popen(nc,
-                                       stdout=subprocess.PIPE,
-                                       stdin=subprocess.PIPE)
+                res = subprocess.Popen(
+                    nc, stdout=subprocess.PIPE, stdin=subprocess.PIPE
+                )
                 comm = res.communicate(input=_GET_TIME)
                 data = comm[0].decode("utf-8")
                 loaded = json.loads(data)
@@ -88,9 +109,9 @@ def _time() -> None:
             except:
                 pass
             if update:
-                res = subprocess.Popen(nc,
-                                       stdout=subprocess.PIPE,
-                                       stdin=subprocess.PIPE)
+                res = subprocess.Popen(
+                    nc, stdout=subprocess.PIPE, stdin=subprocess.PIPE
+                )
                 out = res.communicate(input=cmd)[0]
                 if out:
                     print(out)
@@ -141,6 +162,9 @@ def main() -> None:
         return
     elif cmd == "zsh":
         print(_ZSH_COMPLETION.strip())
+        return
+    elif cmd == "bash":
+        print(_BASH_COMPLETION.strip())
         return
     if len(args) != 3:
         _usage()
