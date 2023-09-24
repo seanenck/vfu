@@ -9,6 +9,7 @@ GUICODE := vfu/AppDelegate.swift $(COMMON)
 EXAMPLE := examples/*.json
 SIGN    := codesign --entitlements vfu/vfu.entitlements --force -s -
 DESTDIR := /usr/local/bin
+APP     := $(BIN)vfu.app
 
 .PHONY: $(EXAMPLE)
 
@@ -43,11 +44,11 @@ $(EXAMPLE):
 	$(CLI) --config $@ --verify
 
 bundle: $(GUICODE) $(GEN)
-	xcodebuild archive -archivePath "$(BIN)vfu.app" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
+	xcodebuild archive -archivePath "$(APP)" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
 	xcodebuild
 
 install:
 	mkdir -p $(DESTDIR)
 	install -m755 $(CLI) $(DESTDIR)/vfu
 	install -m755 contrib/vm.py $(DESTDIR)/vm
-	cp -r $(BIN)Release/vfu.app /Applications
+	test ! -d $(APP) || cp -r $(APP) /Applications
