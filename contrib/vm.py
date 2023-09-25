@@ -133,7 +133,6 @@ def _start(name: str) -> None:
     if _status(name):
         return
     print("\nstarting {}...\n".format(name))
-    _manage_time()
     _start_screen(name, "init", [name])
 
 
