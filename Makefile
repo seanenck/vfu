@@ -42,6 +42,7 @@ check: build $(EXAMPLE)
 $(EXAMPLE):
 	touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	$(CLI) --config $@ --verify
+	cat $@ | $(CLI) --config - --verify
 
 bundle: $(GUICODE) $(GEN)
 	xcodebuild archive -archivePath "$(APP)" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO

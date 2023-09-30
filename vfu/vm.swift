@@ -108,7 +108,16 @@ struct Arguments {
             if (self.config == "") {
                 fatalError("no JSON configuration file given")
             }
-            let text = try String(contentsOfFile: self.config)
+            let text: String
+            if (self.config == "-") {
+                var lines = Array<String>()
+                while let line = readLine() {
+                    lines.append(line)
+                }
+                text = lines.joined(separator: "\n")
+            } else {
+                text = try String(contentsOfFile: self.config)
+            }
             if let data = text.data(using: .utf8) {
                 do {
                     let config: Configuration = try JSONDecoder().decode(Configuration.self, from: data)
@@ -369,7 +378,7 @@ struct VM {
             var extra = ""
             switch (flag) {
                 case configOption:
-                    extra = "<configuration file>"
+                    extra = "<configuration file> ('-' for stdin)"
                 case verifyOption:
                     extra = "verify the configuration only"
                     indent = "  "
