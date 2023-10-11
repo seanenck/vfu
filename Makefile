@@ -50,6 +50,5 @@ bundle: $(GUICODE) $(GEN)
 
 install:
 	mkdir -p $(DESTDIR)
-	test ! -d $(CLI) || install -m755 $(CLI) $(DESTDIR)/vfu
-	test ! -d $(CLI) || install -m755 contrib/vm.py $(DESTDIR)/vm
+	test ! -e $(CLI) || install -m755 $(CLI) $(DESTDIR)/vfu
 	test ! -d $(APP) || cp -r $(APP) /Applications
