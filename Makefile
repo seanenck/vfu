@@ -4,6 +4,8 @@ GUI     := $(BIN)vfu-gui
 COMPILE := mkdir -p $(BIN) && swiftc -O vfu/vm.swift
 SIGN    := codesign --entitlements vfu/vfu.entitlements --force -s -
 SOURCE  := $(shell find vfu/ -type f)
+DESTDIR := /usr/local/bin/
+BUNDLE  := $(BIN)Release/vfu.app
 
 all: build
 
@@ -29,6 +31,10 @@ check: build
 		cat $$file | $(CLI) --config - --verify; \
 	done
 
-bundle:
+$(BUNDLE): $(SOURCE)
 	xcodebuild archive -archivePath "$(BIN)vfu.app" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
 	xcodebuild
+
+install:
+	test ! -e $(CLI) || install -m755 $(CLI) $(DESTDIR)
+	test ! -d $(BUNDLE) || cp -r $(BUNDLE) /Applications/
