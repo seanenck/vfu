@@ -3,12 +3,11 @@ CLI     := $(BIN)main
 GUI     := $(BIN)AppDelegate
 DESTDIR := /usr/local/bin/
 BUNDLE  := $(BIN)Release/vfu.app
+OBJECTS := $(CLI) $(GUI)
 
-all: build
+all: $(OBJECTS)
 
-build: $(CLI) $(GUI)
-
-$(CLI) $(GUI): $(shell find vfu/ -type f)
+$(OBJECTS): $(shell find vfu/ -type f)
 	mkdir -p $(BIN)
 	swiftc -O vfu/vm.swift vfu/$(shell basename $@).swift -o $@
 	codesign --entitlements vfu/vfu.entitlements --force -s - $@
@@ -16,7 +15,7 @@ $(CLI) $(GUI): $(shell find vfu/ -type f)
 clean:
 	rm -rf $(BIN)
 
-check: build
+check: $(OBJECTS)
 	$(CLI) --help
 	@touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	@for file in examples/*; do \
