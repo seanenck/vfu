@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A8F052DD2A8985BA005A8721 /* generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F052DB2A8985BA005A8721 /* generated.swift */; };
 		A8F052DE2A8985BA005A8721 /* vm.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F052DC2A8985BA005A8721 /* vm.swift */; };
 		A8F933F02A8981A30097F557 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F933EF2A8981A30097F557 /* AppDelegate.swift */; };
 		A8F933F22A8981A30097F557 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8F933F12A8981A30097F557 /* Assets.xcassets */; };
@@ -15,7 +14,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A8F052DB2A8985BA005A8721 /* generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = generated.swift; sourceTree = "<group>"; };
 		A8F052DC2A8985BA005A8721 /* vm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = vm.swift; sourceTree = "<group>"; };
 		A8F933EC2A8981A30097F557 /* vfu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = vfu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8F933EF2A8981A30097F557 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -54,7 +52,6 @@
 		A8F933EE2A8981A30097F557 /* vfu */ = {
 			isa = PBXGroup;
 			children = (
-				A8F052DB2A8985BA005A8721 /* generated.swift */,
 				A8F052DC2A8985BA005A8721 /* vm.swift */,
 				A8F933EF2A8981A30097F557 /* AppDelegate.swift */,
 				A8F933F12A8981A30097F557 /* Assets.xcassets */,
@@ -130,29 +127,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		A85229E42A8A41AB004E3020 /* Run Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "make vfu/generated.swift\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		A8F933E82A8981A30097F557 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -160,7 +134,6 @@
 			files = (
 				A8F933F02A8981A30097F557 /* AppDelegate.swift in Sources */,
 				A8F052DE2A8985BA005A8721 /* vm.swift in Sources */,
-				A8F052DD2A8985BA005A8721 /* generated.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

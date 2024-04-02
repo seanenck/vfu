@@ -32,8 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
     
     func runApp(isInit: Bool) {
         NSApp.activate(ignoringOtherApps: true)
-        let vers = versionHash()
-        self.window.title = "vfu-gui (\(vers))"
+        self.window.title = "vfu-gui"
         let openPanel = NSOpenPanel()
         openPanel.canChooseFiles = true
         openPanel.allowsMultipleSelection = false

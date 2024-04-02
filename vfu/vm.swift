@@ -151,13 +151,12 @@ struct VM {
     let configOption = "--config"
     let helpOption = "--help"
     let verifyOption = "--verify"
-    let versionOption = "--version"
     let verboseOption = "--verbose"
     let minMemory: UInt64 = 128
     let serialFull = "full"
 
     private func flags() -> Array<String> {
-        return [configOption, verifyOption, helpOption, versionOption, verboseOption]
+        return [configOption, verifyOption, helpOption, verboseOption]
     }
 
     private func createGraphicsDeviceConfiguration() -> VZVirtioGraphicsDeviceConfiguration {
@@ -386,8 +385,6 @@ struct VM {
                     extra = "display this help text"
                 case verboseOption:
                     extra = "include verbose output"
-                case versionOption:
-                    extra = "output the version"
                 default:
                     break
             }
@@ -400,15 +397,9 @@ struct VM {
             print("  \(indent)\(flag)\(spacing)\(extra)")
         }
         print("")
-        vers()
         if (message != "") {
             fatalError(message)
         }
-    }
-
-    private func vers() {
-        let v = versionHash()
-        print("version: \(v)")
     }
 
     func parseArguments() -> Arguments? {
@@ -428,9 +419,6 @@ struct VM {
                     matched += 1
                     found = true
                     switch (flag) {
-                        case versionOption:
-                            vers()
-                            return nil
                         case configOption:
                             if (pos == arguments) {
                                 fatalError("config file not specified")
