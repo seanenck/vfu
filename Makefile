@@ -1,9 +1,8 @@
 BIN     := build/
 CLI     := $(BIN)main
-GUI     := $(BIN)AppDelegate
-DESTDIR := /usr/local/bin/
+DESTDIR := /usr/local/bin
 BUNDLE  := $(BIN)Release/vfu.app
-OBJECTS := $(CLI) $(GUI)
+OBJECTS := $(CLI) $(BIN)AppDelegate
 
 all: $(OBJECTS)
 
@@ -29,5 +28,5 @@ $(BUNDLE): $(SOURCE)
 	xcodebuild
 
 install:
-	test ! -e $(CLI) || install -m755 $(CLI) $(DESTDIR)vfu
+	test ! -e $(CLI) || install -m755 $(CLI) $(DESTDIR)/vfu
 	test ! -d $(BUNDLE) || cp -r $(BUNDLE) /Applications/
