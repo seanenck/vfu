@@ -10,6 +10,7 @@ EXAMPLE := examples/*.json
 SIGN    := codesign --entitlements vfu/vfu.entitlements --force -s -
 DESTDIR := /usr/local/bin
 APP     := $(BIN)vfu.app
+RELEASE := $(BIN)Release/vfu.app
 
 .PHONY: $(EXAMPLE)
 
@@ -51,4 +52,4 @@ bundle: $(GUICODE) $(GEN)
 install:
 	mkdir -p $(DESTDIR)
 	test ! -e $(CLI) || install -m755 $(CLI) $(DESTDIR)/vfu
-	test ! -d $(APP) || cp -r $(APP) /Applications
+	test ! -d $(RELEASE) || sudo cp -r $(RELEASE) /Applications

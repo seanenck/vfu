@@ -8,13 +8,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
     @IBOutlet weak var virtualMachineView: VZVirtualMachineView!
 
     private var virtualMachine: VZVirtualMachine!
-
+    private var isStarted: Bool!
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        runApp(isInit: true)
+    }
+    
+    func isRunning() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3), execute: {
+            if (self.virtualMachine != nil) {
+                if (self.virtualMachine?.state == VZVirtualMachine.State.stopped){
+                    print("machine stopped.");
+                    exit(EXIT_SUCCESS);
+                }
+            }
+            self.isRunning();
+        })
+    }
+    
+    func runApp(isInit: Bool) {
         NSApp.activate(ignoringOtherApps: true)
         let vers = versionHash()
         self.window.title = "vfu-gui (\(vers))"
@@ -23,7 +39,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
         openPanel.allowsMultipleSelection = false
         openPanel.canChooseDirectories = false
         openPanel.canCreateDirectories = false
-
+        
         openPanel.begin { (result) -> Void in
             if result == .OK {
                 var args = Arguments(verbose: false, verify: false, config: openPanel.url!.path, graphical: true)
@@ -42,12 +58,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
                         case let .failure(error):
                             fatalError("failed to start with error: \(error)")
                         default:
-                            print("started.")
+                            print("machine started.")
                         }
                     })
                 }
+                self.isRunning()
             } else {
-                fatalError("config file not selected")
+                print("exiting.")
+                exit(EXIT_SUCCESS)
             }
         }
     }
@@ -58,7 +76,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
-
-
 }
-
