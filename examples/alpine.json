@@ -4,6 +4,10 @@
       "store": "build/efi_vars.fd"
     }
   },
+  "graphics": {
+      "height": 600,
+      "width": 800
+  },
   "identifier": "build/machine_id",
   "resources": {
       "cpus": 1,

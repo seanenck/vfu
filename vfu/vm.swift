@@ -11,6 +11,7 @@ struct Configuration: Decodable {
     var disks: Array<DiskConfiguration>?
     var networks: Array<NetworkConfiguration>?
     var shares: Dictionary<String, ShareConfiguration>?
+    var graphics: GraphicsConfiguration?
 
     private func resolvable(args: Arguments) -> Dictionary<String, URL> {
         let homePath = "~/"
@@ -63,6 +64,10 @@ struct Configuration: Decodable {
         }
         return URL(fileURLWithPath: path)
     }
+}
+struct GraphicsConfiguration: Decodable {
+    var width: Int
+    var height: Int
 }
 struct ResourceConfiguration: Decodable {
     var cpus: Int
@@ -159,10 +164,10 @@ struct VM {
         return [configOption, verifyOption, helpOption, verboseOption]
     }
 
-    private func createGraphicsDeviceConfiguration() -> VZVirtioGraphicsDeviceConfiguration {
+    private func createGraphicsDeviceConfiguration(width: Int, height: Int) -> VZVirtioGraphicsDeviceConfiguration {
         let graphicsDevice = VZVirtioGraphicsDeviceConfiguration()
         graphicsDevice.scanouts = [
-            VZVirtioGraphicsScanoutConfiguration(widthInPixels: 1280, heightInPixels: 720)
+            VZVirtioGraphicsScanoutConfiguration(widthInPixels: width, heightInPixels: height)
         ]
 
         return graphicsDevice
@@ -261,9 +266,13 @@ struct VM {
         config.memorySize = memory * 1024*1024
         let graphical = args.graphical || args.verify
         if (graphical) {
+            let graphics = cfg.graphics ?? GraphicsConfiguration(width: 1280, height: 720)
+            if (graphics.width <= 0 || graphics.height <= 0) {
+                throw VMError.runtimeError("graphics height/width must be > 0")
+            }
             config.keyboards = [VZUSBKeyboardConfiguration()]
             config.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
-            config.graphicsDevices = [createGraphicsDeviceConfiguration()]
+            config.graphicsDevices = [createGraphicsDeviceConfiguration(width: graphics.width, height: graphics.height)]
         }
 
         var useSerial = true
