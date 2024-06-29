@@ -7,7 +7,7 @@ remains the basis for the current state at this time. The main goal is to take
 what `vftool` is and provide the ability to run/configure simple Linux-based VMs
 via JSON definitions.
 
-[![build](https://github.com/enckse/vfu/actions/workflows/build.yml/badge.svg)](https://github.com/enckse/vfu/actions/workflows/build.yml)
+[![build](https://github.com/seanenck/vfu/actions/workflows/build.yml/badge.svg)](https://github.com/seanenck/vfu/actions/workflows/build.yml)
 
 ## Build
 
