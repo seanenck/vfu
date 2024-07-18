@@ -2,9 +2,11 @@ BIN     := build/
 CLI     := $(BIN)main
 DESTDIR := /usr/local/bin
 BUNDLE  := $(BIN)Release/vfu.app
-OBJECTS := $(CLI) $(BUNDLE)
+OBJECTS := $(CLI)
 
 all: $(OBJECTS)
+
+bundle: $(BUNDLE)
 
 $(OBJECTS): $(shell find vfu/ -type f)
 	mkdir -p $(BIN)
