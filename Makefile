@@ -2,7 +2,7 @@ BIN     := build/
 CLI     := $(BIN)main
 DESTDIR := /usr/local/bin
 BUNDLE  := $(BIN)Release/vfu.app
-OBJECTS := $(CLI) $(BIN)AppDelegate
+OBJECTS := $(CLI) $(BUNDLE)
 
 all: $(OBJECTS)
 
