@@ -17,7 +17,7 @@ clean:
 
 check: $(CLI)
 	$(CLI) --help
-	@touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img $(BIN)nvme.img
+	@touch $(BIN)apkovl.img $(BIN)alpine-aarch64.iso $(BIN)data.img
 	@for file in examples/*; do \
 		echo "testing: $$file"; \
 		$(CLI) --config $$file --verify; \

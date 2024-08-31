@@ -20,10 +20,6 @@
       "mode": "block",
       "path": "build/apkovl.img"
     },
-    {
-      "mode": "nvme",
-      "path": "build/nvme.img",
-    },
     { 
       "mode": "block",
       "path": "$BUILD/data.img",
