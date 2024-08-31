@@ -344,6 +344,12 @@ struct VM {
                     allStorage.append(VZUSBMassStorageDeviceConfiguration(attachment: diskObject))
                 case "block":
                     allStorage.append(VZVirtioBlockDeviceConfiguration(attachment: diskObject))
+            case "nvme":
+                if #available(macOS 14, *) {
+                    allStorage.append(VZNVMExpressControllerDeviceConfiguration(attachment: diskObject))
+                } else {
+                    throw VMError.runtimeError("nvme disk mode not available in macOS version")
+                }
                 default:
                     throw VMError.runtimeError("invalid disk mode")
             }
