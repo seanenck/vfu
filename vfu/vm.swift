@@ -12,6 +12,7 @@ struct Configuration: Decodable {
     var networks: Array<NetworkConfiguration>?
     var shares: Dictionary<String, ShareConfiguration>?
     var graphics: GraphicsConfiguration?
+    var entropy: Bool?
 
     private func resolvable(args: Arguments) -> Dictionary<String, URL> {
         let homePath = "~/"
@@ -381,6 +382,10 @@ struct VM {
                 args.log(message: "sharing: \(key) -> \(local.path), ro: \(ro)")
              }
              config.directorySharingDevices = allShares
+        }
+        if (cfg.entropy ?? true) {
+            let entropy = VZVirtioEntropyDeviceConfiguration()
+            config.entropyDevices = [entropy]
         }
         return config
     }
