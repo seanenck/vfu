@@ -1,11 +1,10 @@
 BIN     := build/
 CLI     := $(BIN)main
-DESTDIR := /usr/local/bin
 BUNDLE  := $(BIN)Release/vfu.app
 OBJECTS := $(CLI)
 SOURCE  := $(shell find vfu/ -type f)
 
-all: $(CLI) $(BUNDLE)
+all: $(BUNDLE)
 
 $(CLI): $(SOURCE)
 	mkdir -p $(BIN)
@@ -24,10 +23,10 @@ check: $(CLI)
 		cat $$file | $(CLI) --config - --verify; \
 	done
 
-$(BUNDLE): $(SOURCE)
+$(BUNDLE): $(CLI)
 	xcodebuild archive -archivePath "$(BIN)vfu.app" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
 	xcodebuild
+	cp $(CLI) $(BUNDLE)/Contents/MacOS/vfu-cli
 
 install:
-	test ! -e $(CLI) || install -m755 $(CLI) $(DESTDIR)/vfu
-	test ! -d $(BUNDLE) || cp -r $(BUNDLE) /Applications/
+	cp -r $(BUNDLE) /Applications/
