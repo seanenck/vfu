@@ -50,7 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
             if result == .OK {
                 var args = Arguments(verbose: false, quiet: false, verify: false, config: openPanel.url!.path, graphical: true)
                 args.setDirectory()
-                let config = VM().createConfiguration(args: args)
+                let config = createConfiguration(args: args)
                 if (config == nil) {
                     return
                 }

@@ -8,7 +8,7 @@ all: $(BUNDLE)
 
 $(CLI): $(SOURCE)
 	mkdir -p $(BIN)
-	swiftc -O vfu/vm.swift vfu/$(shell basename $@).swift -o $@
+	swiftc -O vfu/src/*.swift vfu/$(shell basename $@).swift -o $@
 	codesign --entitlements vfu/vfu.entitlements --force -s - $@
 
 clean:
