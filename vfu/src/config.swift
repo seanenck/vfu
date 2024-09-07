@@ -60,6 +60,7 @@ struct TimeConfiguration: Decodable {
 struct QemuTimeConfiguration: Decodable {
     var port: UInt32
     var deadline: UInt32
+    var delta: UInt64
 }
 struct GraphicsConfiguration: Decodable {
     var width: Int

@@ -2,6 +2,7 @@
   "time": {
     "qemu": {
       "deadline": 10,
+      "delta": 60,
       "port": 1234
     }
   },
