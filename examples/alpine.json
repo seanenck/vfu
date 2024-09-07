@@ -1,5 +1,5 @@
 {
-  "clock": {
+  "time": {
     "deadline": 10,
     "port": 1234
   },

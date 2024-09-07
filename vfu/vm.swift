@@ -18,7 +18,7 @@ struct Configuration: Decodable {
     var shares: Dictionary<String, ShareConfiguration>?
     var graphics: GraphicsConfiguration?
     var entropy: Bool?
-    var clock: ClockConfiguration?
+    var time: TimeConfiguration?
 
     private func resolvable(args: Arguments) -> Dictionary<String, URL> {
         let homePath = "~/"
@@ -72,7 +72,7 @@ struct Configuration: Decodable {
         return URL(fileURLWithPath: path)
     }
 }
-struct ClockConfiguration: Decodable {
+struct TimeConfiguration: Decodable {
     var port: UInt32
     var deadline: UInt32
 }
@@ -397,7 +397,7 @@ struct VM {
             let entropy = VZVirtioEntropyDeviceConfiguration()
             config.entropyDevices = [entropy]
         }
-        if (cfg.clock != nil) {
+        if (cfg.time != nil) {
             config.socketDevices.append(VZVirtioSocketDeviceConfiguration())
         }
         return VMConfiguration(inConfig: cfg, vmConfig: config)
@@ -532,15 +532,15 @@ struct VM {
 }
 
 func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, log: @escaping (_: String) ->()) -> Bool {
-    if (config.inConfig.clock == nil) {
+    if (config.inConfig.time == nil) {
         return false
     }
-    if (since < config.inConfig.clock!.deadline ) {
+    if (since < config.inConfig.time!.deadline ) {
         return false
     }
     
     let socket = vm.socketDevices[0] as? VZVirtioSocketDevice
-    socket?.connect(toPort: config.inConfig.clock!.port) {(result) in
+    socket?.connect(toPort: config.inConfig.time!.port) {(result) in
         switch result {
         case let .failure(error):
             log("failed to connect to socket with error: \(error)")
