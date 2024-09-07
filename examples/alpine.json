@@ -1,4 +1,8 @@
 {
+  "clock": {
+    "deadline": 10,
+    "port": 1234
+  },
   "boot": {
     "efi": {
       "store": "build/efi_vars.fd"

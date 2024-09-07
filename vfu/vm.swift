@@ -1,6 +1,11 @@
 import Foundation
 import Virtualization
 
+struct VMConfiguration {
+    var inConfig: Configuration
+    var vmConfig: VZVirtualMachineConfiguration
+}
+
 struct Configuration: Decodable {
 
     var env: Dictionary<String, String>?
@@ -13,6 +18,7 @@ struct Configuration: Decodable {
     var shares: Dictionary<String, ShareConfiguration>?
     var graphics: GraphicsConfiguration?
     var entropy: Bool?
+    var clock: ClockConfiguration?
 
     private func resolvable(args: Arguments) -> Dictionary<String, URL> {
         let homePath = "~/"
@@ -65,6 +71,10 @@ struct Configuration: Decodable {
         }
         return URL(fileURLWithPath: path)
     }
+}
+struct ClockConfiguration: Decodable {
+    var port: UInt32
+    var deadline: UInt32
 }
 struct GraphicsConfiguration: Decodable {
     var width: Int
@@ -208,7 +218,7 @@ struct VM {
         return FileManager.default.fileExists(atPath: path.path)
     }
 
-    private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VZVirtualMachineConfiguration {
+    private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VMConfiguration {
         let boot = cfg.boot
         if (boot.linux == nil && boot.efi == nil) {
             throw VMError.runtimeError("linux OR efi boot must be set")
@@ -387,7 +397,10 @@ struct VM {
             let entropy = VZVirtioEntropyDeviceConfiguration()
             config.entropyDevices = [entropy]
         }
-        return config
+        if (cfg.clock != nil) {
+            config.socketDevices.append(VZVirtioSocketDeviceConfiguration())
+        }
+        return VMConfiguration(inConfig: cfg, vmConfig: config)
     }
 
     private func usage(message: String) {
@@ -466,7 +479,7 @@ struct VM {
         return Arguments(verbose: isVerbose, verify: verifyMode, config: jsonConfig, graphical: false)
     }
 
-    func createConfiguration(args: Arguments) -> VZVirtualMachineConfiguration? {
+    func createConfiguration(args: Arguments) -> VMConfiguration? {
         let object = args.readJSON()
         if (object.resources.cpus <= 0) {
             fatalError("cpu count must be > 0")
@@ -474,7 +487,7 @@ struct VM {
 
         do {
             let config = try getVMConfig(cfg: object, args: args)
-            try config.validate()
+            try config.vmConfig.validate()
             if (args.verify) {
                 return nil
             }
@@ -486,9 +499,9 @@ struct VM {
         }
     }
 
-    func runCLI(config: VZVirtualMachineConfiguration, args: Arguments) {
+    func runCLI(config: VMConfiguration, args: Arguments) {
         let queue = DispatchQueue(label: "vfu queue")
-        let vm = VZVirtualMachine(configuration: config, queue: queue)
+        let vm = VZVirtualMachine(configuration: config.vmConfig, queue: queue)
         queue.sync{
             if (!vm.canStart) {
                 fatalError("vm can not start")
@@ -504,9 +517,61 @@ struct VM {
         }
         args.log(message: "vm initialized")
         sleep(1)
+        var clockSleep = 0
         while (vm.state == VZVirtualMachine.State.running || vm.state == VZVirtualMachine.State.starting) {
+            clockSleep += 1
             sleep(1)
+            queue.sync {
+                if (handleClockSync(since: clockSleep, vm: vm, config: config, log: args.log)) {
+                    clockSleep = 0
+                }
+            }
         }
         args.log(message: "exiting")
     }
+}
+
+func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, log: @escaping (_: String) ->()) -> Bool {
+    if (config.inConfig.clock == nil) {
+        return false
+    }
+    if (since < config.inConfig.clock!.deadline ) {
+        return false
+    }
+    
+    let socket = vm.socketDevices[0] as? VZVirtioSocketDevice
+    socket?.connect(toPort: config.inConfig.clock!.port) {(result) in
+        switch result {
+        case let .failure(error):
+            log("failed to connect to socket with error: \(error)")
+        case let .success(conn):
+            let seconds = Int(Date().timeIntervalSince1970)
+            let command = "{\"execute\": \"guest-set-time\", \"arguments\":{\"time\": \(seconds)000000000}}\n"
+            let data = Data(command.utf8)
+            let handle = FileHandle(fileDescriptor: conn.fileDescriptor)
+            do {
+                try handle.write(contentsOf: data)
+                var reading = true
+                var resp = ""
+                while (reading) {
+                    switch try handle.read(upToCount: 1) {
+                    case let .some(d):
+                        let str = String(decoding: d, as: UTF8.self)
+                        if (str.contains("\n")) {
+                            reading = false
+                        }
+                        resp.append(str)
+                    case .none:
+                        break
+                    }
+                }
+                if (resp.trimmingCharacters(in: .whitespacesAndNewlines) != "{\"return\": {}}") {
+                    log("unexpected response: \(resp)")
+                }
+            } catch {
+                log("failed to send/respond: \(error)")
+            }
+        }
+    }
+    return true
 }

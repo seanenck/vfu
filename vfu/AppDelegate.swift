@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
 
     private var virtualMachine: VZVirtualMachine!
     private var isStarted: Bool!
+    private var sleep = 3
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
@@ -18,15 +19,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
         runApp(isInit: true)
     }
     
-    func isRunning() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3), execute: {
+    func isRunning(config: VMConfiguration, since: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(sleep), execute: {
+            var next = since + self.sleep
             if (self.virtualMachine != nil) {
                 if (self.virtualMachine?.state == VZVirtualMachine.State.stopped){
                     print("machine stopped.");
                     exit(EXIT_SUCCESS);
                 }
+                if (handleClockSync(since: next, vm: self.virtualMachine, config: config) { (msg) in
+                    print(msg)
+                }) {
+                    next = 0
+                }
             }
-            self.isRunning();
+            self.isRunning(config: config, since: next);
         })
     }
     
@@ -43,12 +50,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
             if result == .OK {
                 var args = Arguments(verbose: false, verify: false, config: openPanel.url!.path, graphical: true)
                 args.setDirectory()
+                let config = VM().createConfiguration(args: args)
+                if (config == nil) {
+                    return
+                }
+                let vm = VZVirtualMachine(configuration: config!.vmConfig)
                 DispatchQueue.main.async {
-                    let config = VM().createConfiguration(args: args)
-                    if (config == nil) {
-                        return
-                    }
-                    let vm = VZVirtualMachine(configuration: config!)
                     self.virtualMachine = vm
                     self.virtualMachineView.virtualMachine = self.virtualMachine
                     self.virtualMachine.delegate = self
@@ -61,7 +68,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
                         }
                     })
                 }
-                self.isRunning()
+                self.isRunning(config: config!, since: 0)
             } else {
                 print("exiting.")
                 exit(EXIT_SUCCESS)
