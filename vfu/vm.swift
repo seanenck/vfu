@@ -79,6 +79,9 @@ struct Configuration: Decodable {
     }
 }
 struct TimeConfiguration: Decodable {
+    var qemu: QemuTimeConfiguration
+}
+struct QemuTimeConfiguration: Decodable {
     var port: UInt32
     var deadline: UInt32
 }
@@ -555,13 +558,13 @@ func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, 
     if (config.inConfig.time == nil) {
         return false
     }
-    if (since < config.inConfig.time!.deadline ) {
+    if (since < config.inConfig.time!.qemu.deadline ) {
         return false
     }
     
     log(LogLevel.Debug, "time sync inprogress")
     let socket = vm.socketDevices[0] as? VZVirtioSocketDevice
-    socket?.connect(toPort: config.inConfig.time!.port) {(result) in
+    socket?.connect(toPort: config.inConfig.time!.qemu.port) {(result) in
         switch result {
         case let .failure(error):
             log(LogLevel.Error, "failed to connect to socket with error: \(error)")

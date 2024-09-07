@@ -1,7 +1,9 @@
 {
   "time": {
-    "deadline": 10,
-    "port": 1234
+    "qemu": {
+      "deadline": 10,
+      "port": 1234
+    }
   },
   "boot": {
     "efi": {
