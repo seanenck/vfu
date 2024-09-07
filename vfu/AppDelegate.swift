@@ -27,8 +27,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
                     print("machine stopped.");
                     exit(EXIT_SUCCESS);
                 }
-                if (handleClockSync(since: next, vm: self.virtualMachine, config: config) { (msg) in
-                    print(msg)
+                if (handleClockSync(since: next, vm: self.virtualMachine, config: config) { (level, msg) in
+                    print("\(level) \(msg)")
                 }) {
                     next = 0
                 }
@@ -48,7 +48,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, VZVirtualMachineDelegate {
         
         openPanel.begin { (result) -> Void in
             if result == .OK {
-                var args = Arguments(verbose: false, verify: false, config: openPanel.url!.path, graphical: true)
+                var args = Arguments(verbose: false, quiet: false, verify: false, config: openPanel.url!.path, graphical: true)
                 args.setDirectory()
                 let config = VM().createConfiguration(args: args)
                 if (config == nil) {

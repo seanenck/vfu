@@ -1,6 +1,12 @@
 import Foundation
 import Virtualization
 
+enum LogLevel: String {
+    case Debug = "DEBUG"
+    case Error = "ERROR"
+    case Info = "INFO"
+}
+
 struct VMConfiguration {
     var inConfig: Configuration
     var vmConfig: VZVirtualMachineConfiguration
@@ -114,6 +120,7 @@ struct Arguments {
     static let pathSep = "/"
 
     var verbose: Bool
+    var quiet: Bool
     var verify: Bool
     var config: String
     var graphical: Bool
@@ -147,10 +154,14 @@ struct Arguments {
             fatalError("unable to read JSON from file: \(self.config)")
         }
     }
-    func log(message: String) {
-        if (self.verbose) {
-            print(message)
+    func log(level: LogLevel, message: String) {
+        if (self.quiet) {
+            return
         }
+        if (level == LogLevel.Debug && !self.verbose) {
+            return
+        }
+        print("[\(level)] \(message)")
     }
     mutating func setDirectory() {
         let parts = self.config.split(separator: Arguments.pathSep.first!)
@@ -168,11 +179,12 @@ struct VM {
     let helpOption = "--help"
     let verifyOption = "--verify"
     let verboseOption = "--verbose"
+    let quietOption = "--quiet"
     let minMemory: UInt64 = 128
     let serialFull = "full"
 
     private func flags() -> Array<String> {
-        return [configOption, verifyOption, helpOption, verboseOption]
+        return [configOption, verifyOption, helpOption, verboseOption, quietOption]
     }
 
     private func createGraphicsDeviceConfiguration(width: Int, height: Int) -> VZVirtioGraphicsDeviceConfiguration {
@@ -251,7 +263,7 @@ struct VM {
             if (initrd != "") {
                 bootLoader.initialRamdiskURL = cfg.resolve(path: initrd, args: args)
             }
-            args.log(message: "configuring - kernel: \(opts.kernel), initrd: \(initrd), cmdline: \(cmdline)")
+            args.log(level: LogLevel.Debug, message: "configuring - kernel: \(opts.kernel), initrd: \(initrd), cmdline: \(cmdline)")
             config.bootLoader = bootLoader
         } else {
             let opts = cfg.boot.efi!
@@ -298,9 +310,9 @@ struct VM {
                 case "none":
                     attach = false
                 case serialFull:
-                    args.log(message: "NOTICE: serial console in full mode, this may interfere with normal stdin/stdout")
+                    args.log(level: LogLevel.Info, message: "serial console in full mode, this may interfere with normal stdin/stdout")
                 case "raw":
-                    args.log(message: "attaching raw serial console")
+                    args.log(level: LogLevel.Debug, message: "attaching raw serial console")
                     full = false
                 default:
                     throw VMError.runtimeError("unknown serial mode: \(serialMode)")
@@ -328,7 +340,7 @@ struct VM {
                 networkIdentifier = mac
                 networkIdentifierMessage = "multiple NAT devices using same or empty MAC is not allowed \(mac)"
                 networkConfig.attachment = VZNATNetworkDeviceAttachment()
-                args.log(message: "NAT network attached (mac? \(mac))")
+                args.log(level: LogLevel.Debug, message: "NAT network attached (mac? \(mac))")
             default:
                 throw VMError.runtimeError("unknown network mode: \(network.mode)")
             }
@@ -364,7 +376,7 @@ struct VM {
                 default:
                     throw VMError.runtimeError("invalid disk mode")
             }
-            args.log(message: "attaching disk: \(disk.path), ro: \(ro), mode: \(disk.mode)")
+            args.log(level: LogLevel.Debug, message: "attaching disk: \(disk.path), ro: \(ro), mode: \(disk.mode)")
         }
         config.storageDevices = allStorage
 
@@ -389,7 +401,7 @@ struct VM {
                 let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
                 shareConfig.share = singleDirectory
                 allShares.append(shareConfig)
-                args.log(message: "sharing: \(key) -> \(local.path), ro: \(ro)")
+                args.log(level: LogLevel.Debug, message: "sharing: \(key) -> \(local.path), ro: \(ro)")
              }
              config.directorySharingDevices = allShares
         }
@@ -417,7 +429,9 @@ struct VM {
                 case helpOption:
                     extra = "display this help text"
                 case verboseOption:
-                    extra = "include verbose output"
+                    extra = "include verbose log output"
+                case quietOption:
+                    extra = "disable all log output"
                 default:
                     break
             }
@@ -439,6 +453,7 @@ struct VM {
         var jsonConfig = ""
         var verifyMode = false
         var isVerbose = false
+        var isQuiet = false
         let arguments = CommandLine.arguments.count - 1
         var matched = 0
         for flag in flags() {
@@ -464,6 +479,8 @@ struct VM {
                             return nil
                         case verboseOption:
                             isVerbose = true
+                        case quietOption:
+                            isQuiet = true
                         case verifyOption:
                             verifyMode = true
                         default:
@@ -476,7 +493,10 @@ struct VM {
         if (matched != arguments) {
             usage(message: "unknown flags given")
         }
-        return Arguments(verbose: isVerbose, verify: verifyMode, config: jsonConfig, graphical: false)
+        if (isVerbose && isQuiet) {
+            usage(message: "can not specify verbose and quiet together")
+        }
+        return Arguments(verbose: isVerbose, quiet: isQuiet, verify: verifyMode, config: jsonConfig, graphical: false)
     }
 
     func createConfiguration(args: Arguments) -> VMConfiguration? {
@@ -507,7 +527,7 @@ struct VM {
                 fatalError("vm can not start")
             }
         }
-        args.log(message: "vm ready")
+        args.log(level: LogLevel.Info, message: "vm ready")
         queue.sync{
             vm.start(completionHandler: { (result) in
                 if case let .failure(error) = result {
@@ -515,7 +535,7 @@ struct VM {
                 }
             })
         }
-        args.log(message: "vm initialized")
+        args.log(level: LogLevel.Info, message: "vm initialized")
         sleep(1)
         var clockSleep = 0
         while (vm.state == VZVirtualMachine.State.running || vm.state == VZVirtualMachine.State.starting) {
@@ -527,11 +547,11 @@ struct VM {
                 }
             }
         }
-        args.log(message: "exiting")
+        args.log(level: LogLevel.Debug, message: "exiting")
     }
 }
 
-func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, log: @escaping (_: String) ->()) -> Bool {
+func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, log: @escaping (_: LogLevel, _: String) ->()) -> Bool {
     if (config.inConfig.time == nil) {
         return false
     }
@@ -539,11 +559,12 @@ func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, 
         return false
     }
     
+    log(LogLevel.Debug, "time sync inprogress")
     let socket = vm.socketDevices[0] as? VZVirtioSocketDevice
     socket?.connect(toPort: config.inConfig.time!.port) {(result) in
         switch result {
         case let .failure(error):
-            log("failed to connect to socket with error: \(error)")
+            log(LogLevel.Error, "failed to connect to socket with error: \(error)")
         case let .success(conn):
             let seconds = Int(Date().timeIntervalSince1970)
             let command = "{\"execute\": \"guest-set-time\", \"arguments\":{\"time\": \(seconds)000000000}}\n"
@@ -565,11 +586,12 @@ func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, 
                         break
                     }
                 }
+                log(LogLevel.Debug, resp)
                 if (resp.trimmingCharacters(in: .whitespacesAndNewlines) != "{\"return\": {}}") {
-                    log("unexpected response: \(resp)")
+                    log(LogLevel.Error, "unexpected response: \(resp)")
                 }
             } catch {
-                log("failed to send/respond: \(error)")
+                log(LogLevel.Error, "failed to send/respond: \(error)")
             }
         }
     }
