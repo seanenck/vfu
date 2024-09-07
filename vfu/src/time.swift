@@ -9,23 +9,24 @@ func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, 
         return false
     }
     
-    log(LogLevel.Debug, "time sync inprogress")
+    log(LogLevel.Debug, "time sync in progress")
     let socket = vm.socketDevices[0] as? VZVirtioSocketDevice
     socket?.connect(toPort: config.inConfig.time!.qemu.port) {(result) in
         switch result {
         case let .failure(error):
             log(LogLevel.Error, "failed to connect to socket with error: \(error)")
         case let .success(conn):
-            let seconds = Int(Date().timeIntervalSince1970)
-            let command = "{\"execute\": \"guest-set-time\", \"arguments\":{\"time\": \(seconds)000000000}}\n"
-            let data = Data(command.utf8)
-            let handle = FileHandle(fileDescriptor: conn.fileDescriptor)
+            var handle: FileHandle? = nil
             do {
-                try handle.write(contentsOf: data)
+                let seconds = Int(Date().timeIntervalSince1970)
+                let command = "{\"execute\": \"guest-set-time\", \"arguments\":{\"time\": \(seconds)000000000}}\n"
+                let data = Data(command.utf8)
+                handle = FileHandle(fileDescriptor: conn.fileDescriptor)
+                try handle!.write(contentsOf: data)
                 var reading = true
                 var resp = ""
                 while (reading) {
-                    switch try handle.read(upToCount: 1) {
+                    switch try handle!.read(upToCount: 1) {
                     case let .some(d):
                         let str = String(decoding: d, as: UTF8.self)
                         if (str.contains("\n")) {
@@ -42,6 +43,14 @@ func handleClockSync(since: Int, vm: VZVirtualMachine, config: VMConfiguration, 
                 }
             } catch {
                 log(LogLevel.Error, "failed to send/respond: \(error)")
+            }
+            do {
+                conn.close()
+                if (handle != nil) {
+                    try handle!.close()
+                }
+            } catch {
+                log(LogLevel.Error, "unable to cleanup: \(error)")
             }
         }
     }
