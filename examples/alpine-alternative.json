@@ -3,7 +3,8 @@
   "boot": {
     "linux": {
       "kernel": "vmlinuz-lts",
-      "initrd": "initramfs-lts"
+      "initrd": "initramfs-lts",
+      "cmdline": "myargs"
     }
   },
   "resources": {
