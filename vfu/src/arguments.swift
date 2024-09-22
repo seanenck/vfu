@@ -30,7 +30,7 @@ struct Arguments {
                 }
                 text = lines.joined(separator: "\n")
             } else {
-                text = try String(contentsOfFile: self.config)
+                text = try String.init(contentsOfFile: self.config, encoding: .nonLossyASCII)
             }
             if let data = text.data(using: .utf8) {
                 do {
