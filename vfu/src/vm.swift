@@ -222,12 +222,13 @@ private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VMConfig
                 throw VMError.runtimeError("empty share path: \(key)")
             }
             let ro = (local.readonly ?? false)
-            let directoryShare = VZSharedDirectory(url: cfg.resolve(path: local.path, args: args), readOnly: ro)
+            let to = (local.path ?? "\(isHome)\(key)")
+            let directoryShare = VZSharedDirectory(url: cfg.resolve(path: to, args: args), readOnly: ro)
             let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
             let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
             shareConfig.share = singleDirectory
             allShares.append(shareConfig)
-            args.log(level: LogLevel.Debug, message: "sharing: \(key) -> \(local.path), ro: \(ro)")
+            args.log(level: LogLevel.Debug, message: "sharing: \(key) -> \(to), ro: \(ro)")
          }
          config.directorySharingDevices = allShares
     }

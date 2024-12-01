@@ -31,9 +31,7 @@
     "$HOME/": "~/"
   },
   "shares": {
-    "downloads": {
-       "path": "/Users"
-    },
+    "downloads": {},
     "documents": {
        "path": "$HOME/Documents",
        "readonly": true 

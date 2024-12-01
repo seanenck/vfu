@@ -1,5 +1,7 @@
 import Foundation
 
+let isHome = "~/"
+
 struct Configuration: Decodable {
 
     var env: Dictionary<String, String>?
@@ -15,7 +17,7 @@ struct Configuration: Decodable {
     var time: TimeConfiguration?
 
     private func resolvable(args: Arguments) -> Dictionary<String, URL> {
-        let homePath = "~/"
+        let homePath = isHome
         var dirs = Dictionary<String, URL>()
         let home = FileManager.default.homeDirectoryForCurrentUser
         dirs[homePath] = home
@@ -92,7 +94,7 @@ struct NetworkConfiguration: Decodable {
     var mode: String
 }
 struct ShareConfiguration: Decodable {
-    var path: String
+    var path: String?
     var readonly: Bool?
 }
 
