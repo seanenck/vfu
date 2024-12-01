@@ -32,12 +32,12 @@
   },
   "shares": {
     "downloads": {},
-    "documents": {
-       "path": "$HOME/Documents",
+    "$HOME/Documents": {
+       "name": "documents",
        "readonly": true 
     },
     "other": {
-       "path": "~/Documents",
+       "name": "~/Documents",
        "readonly": true 
     }
   },

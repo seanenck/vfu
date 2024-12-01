@@ -209,26 +209,24 @@ private func getVMConfig(cfg: Configuration, args: Arguments) throws -> VMConfig
     let shares = (cfg.shares ?? Dictionary<String, ShareConfiguration>())
     if (shares.count > 0) {
         var allShares = Array<VZVirtioFileSystemDeviceConfiguration>()
-        for key in shares.keys {
+        for inPath in shares.keys {
+            let path = cfg.resolve(path: inPath, args: args)
+            guard let local = shares[inPath] else {
+                throw VMError.runtimeError("unable to read share configuration: \(inPath)")
+            }
+            let key = (local.name ?? (inPath as NSString).lastPathComponent)
             do {
                 try VZVirtioFileSystemDeviceConfiguration.validateTag(key)
             } catch {
                 throw VMError.runtimeError("invalid tag: \(key)")
             }
-            guard let local = shares[key] else {
-                throw VMError.runtimeError("unable to read share configuration: \(key)")
-            }
-            if (local.path == "") {
-                throw VMError.runtimeError("empty share path: \(key)")
-            }
             let ro = (local.readonly ?? false)
-            let to = (local.path ?? "\(isHome)\(key)")
-            let directoryShare = VZSharedDirectory(url: cfg.resolve(path: to, args: args), readOnly: ro)
+            let directoryShare = VZSharedDirectory(url: path, readOnly: ro)
             let singleDirectory = VZSingleDirectoryShare(directory: directoryShare)
             let shareConfig = VZVirtioFileSystemDeviceConfiguration(tag: key)
             shareConfig.share = singleDirectory
             allShares.append(shareConfig)
-            args.log(level: LogLevel.Debug, message: "sharing: \(key) -> \(to), ro: \(ro)")
+            args.log(level: LogLevel.Debug, message: "sharing: \(key) -> \(path), ro: \(ro)")
          }
          config.directorySharingDevices = allShares
     }

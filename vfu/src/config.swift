@@ -94,7 +94,7 @@ struct NetworkConfiguration: Decodable {
     var mode: String
 }
 struct ShareConfiguration: Decodable {
-    var path: String?
+    var name: String?
     var readonly: Bool?
 }
 
