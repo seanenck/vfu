@@ -16,6 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "build"
-        run: make
+        run: make FLAGS="-D CI_NO_NESTED_VIRT"
       - name: "check"
         run: make check

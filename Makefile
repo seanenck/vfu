@@ -3,12 +3,13 @@ CLI     := $(BIN)main
 BUNDLE  := $(BIN)Release/vfu.app
 OBJECTS := $(CLI)
 SOURCE  := $(shell find vfu/ -type f)
+FLAGS   :=
 
 all: $(BUNDLE)
 
 $(CLI): $(SOURCE)
 	mkdir -p $(BIN)
-	swiftc -O vfu/src/*.swift vfu/$(shell basename $@).swift -o $@
+	swiftc $(FLAGS) -O vfu/src/*.swift vfu/$(shell basename $@).swift -o $@
 	codesign --entitlements vfu/vfu.entitlements --force -s - $@
 
 clean:
