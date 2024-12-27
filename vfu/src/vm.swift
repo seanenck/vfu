@@ -248,6 +248,9 @@ func createConfiguration(args: Arguments) -> VMConfiguration? {
 
     do {
         let config = try getVMConfig(cfg: object, args: args)
+#if CI_NO_NESTED_VIRT
+        try config.vmConfig.validate()
+#endif
         if (args.verify) {
             return nil
         }
