@@ -8,7 +8,7 @@ with a set of changes that make it a bit different to run and including addition
   MACs...)
 - Graphical option/output
 
-[![build](https://github.com/seanenck/vfu/actions/workflows/build.yml/badge.svg)](https://github.com/seanenck/vfu/actions/workflows/build.yml)
+[![build](https://github.com/seanenck/vfu/actions/workflows/check.yml/badge.svg)](https://github.com/seanenck/vfu/actions/workflows/check.yml)
 
 ## Build
 
