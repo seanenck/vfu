@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "build"
-        run: make
+        run: make VERS=${GITHUB_SHA}
       - name: "zip"
         run: cd build/Release && zip -r ../../vfu-arm64.zip vfu.app
       - name: "checksum"
