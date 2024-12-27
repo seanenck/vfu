@@ -4,6 +4,7 @@ BUNDLE  := $(BIN)Release/vfu.app
 OBJECTS := $(CLI)
 SOURCE  := $(shell find vfu/ -type f)
 FLAGS   :=
+VERS    := $(BUNDLE)/Contents/Resources/vers.txt
 
 all: $(BUNDLE)
 
@@ -27,6 +28,8 @@ check: $(CLI)
 $(BUNDLE): $(CLI)
 	xcodebuild archive -archivePath "$(BIN)vfu.app" -scheme "vfu" -sdk "macosx" -configuration Release CODE_SIGNING_ALLOWED=NO
 	xcodebuild
+	git describe --tags --abbrev=0 > $(VERS)
+	git log $(git describe --tags --abbrev=0)..HEAD --oneline | wc -l >> $(VERS)
 	cp $(CLI) $(BUNDLE)/Contents/MacOS/vfu-cli
 
 install:
