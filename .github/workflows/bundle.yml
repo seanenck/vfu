@@ -21,16 +21,16 @@ jobs:
       - name: "build"
         run: make
       - name: "zip"
-        run: zip -r vfu.zip build/Release/vfu.app
+        run: zip -r vfu-arm64.zip build/Release/vfu.app
       - name: "checksum"
-        run: shasum -a 256 vfu.zip > vfu.zip.sha256
+        run: shasum -a 256 vfu-arm64.zip > vfu-arm64.zip.sha256
       - name: "archive outputs"
         uses: actions/upload-artifact@v4
         with:
           name: vfu
           path: |
-            vfu.zip
-            vfu.zip.sha256
+            vfu-arm64.zip
+            vfu-arm64.zip.sha256
   upload:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     needs: package
@@ -43,5 +43,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            vfu.zip
-            vfu.zip.sha256
+            vfu-arm64.zip
+            vfu-arm64.zip.sha256
