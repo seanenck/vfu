@@ -21,7 +21,7 @@ jobs:
       - name: "build"
         run: make
       - name: "zip"
-        run: zip -r vfu-arm64.zip build/Release/vfu.app
+        run: cd build/Release && zip -r ../../vfu-arm64.zip vfu.app
       - name: "checksum"
         run: shasum -a 256 vfu-arm64.zip > vfu-arm64.zip.sha256
       - name: "archive outputs"
