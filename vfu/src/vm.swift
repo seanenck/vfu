@@ -249,7 +249,7 @@ func createConfiguration(args: Arguments) -> VMConfiguration? {
     do {
         let config = try getVMConfig(cfg: object, args: args)
         var needValidation = true
-#if !CI_SKIP_NESTED_VIRT
+#if CI_SKIP_NESTED_VIRT
         if (args.verify) {
             needValidation = false
         }
