@@ -248,10 +248,7 @@ func createConfiguration(args: Arguments) -> VMConfiguration? {
 
     do {
         let config = try getVMConfig(cfg: object, args: args)
-        let valid = try config.vmConfig.validate()
-        if (!valid) {
-            fatalError("validate failed")
-        }
+        try config.vmConfig.validate()
         if (args.verify) {
             return nil
         }
